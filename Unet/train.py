@@ -54,6 +54,17 @@ class SegmentationDataset(Dataset):
             # apply the transformations to both image and its mask
             image = self.transforms(image)
             mask = self.transforms(mask)
+
+        # # plot to check the output (uncomment to have a look)
+        # fig,ax = plt.subplots(2,3)
+        # ax[0][0].imshow(image[0].T)
+        # ax[0][1].imshow(image[1].T)
+        # ax[0][2].imshow(image[2].T)
+        # ax[1][0].imshow(mask[0].T)
+        # ax[1][1].imshow(mask[1].T)
+        # ax[1][2].axis('off')
+        # plt.show()
+
         # return a tuple of the image and its mask
         return (image, mask)
 
