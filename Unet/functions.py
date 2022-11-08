@@ -1,5 +1,7 @@
 import numpy as np
-    
+
+magnetfolder = "../../Stage_magnet"
+
 # ---------------------------------------------------------------
 # Create input images/arrays for U-Net
 # ---------------------------------------------------------------
@@ -24,9 +26,9 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
     bins_hole_y = int(get_bins(dimension_dict['stage1_hole_y']))
     
     bins_x0 = int((bins_x-1)/2 - ( get_bins(dimension_dict['stage1_sideyoke_left_x'])+(get_bins(dimension_dict['stage1_hole_x'])-1)/2 ))
-    bins_hole_x0 = int((bins_x+1)/2 - (get_bins(dimension_dict['stage1_hole_x'])-1)/2)
+    bins_hole_x0 = int((bins_x-1)/2 - (get_bins(dimension_dict['stage1_hole_x'])-1)/2)
     bins_y0 = int((bins_y+1)/2 - ( get_bins(dimension_dict['stage1_topyoke_y'])+get_bins(dimension_dict['stage1_hole_y'])+(get_bins(dimension_dict['stage1_hole_dist'])+1)/2 ))
-    bins_hole_y0_a = int((bins_y+1)/2 - ( get_bins(dimension_dict['stage1_hole_y'])+(get_bins(dimension_dict['stage1_hole_dist'])-1)/2 ))
+    bins_hole_y0_a = int((bins_y-1)/2 - ( get_bins(dimension_dict['stage1_hole_y'])+(get_bins(dimension_dict['stage1_hole_dist'])-1)/2 ))
     bins_hole_y0_b = int(bins_hole_y0_a + get_bins(dimension_dict['stage1_hole_y']+dimension_dict['stage1_hole_dist']))
     
     current = dimension_dict['stage1_I']*windings
