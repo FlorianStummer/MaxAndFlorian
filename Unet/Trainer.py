@@ -34,10 +34,14 @@ class Trainer:
 
             pred = self.model(x)
 
-            # This does not work just yet
-            #loss = loss_fun(pred*abs(y), y*abs(y))
-            
-            loss = loss_fun(pred, y)
+            #priority_mask = torch.max(torch.ones_like(y)*0.1,abs(y))
+
+            priority_mask = torch.max(torch.ones_like(torch.tensor(y))*0.1,abs(torch.tensor(y))).max(dim=1).values
+            priority_mask = torch.stack([priority_mask,priority_mask],1)
+
+            loss = loss_fun(pred*priority_mask, y*priority_mask)
+
+            #loss = loss_fun(pred, y)
 
             loss_list.append(loss.item())
             if train:
