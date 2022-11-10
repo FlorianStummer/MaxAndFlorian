@@ -1,5 +1,14 @@
 import numpy as np
-    
+import matplotlib.pyplot as plt
+
+import sys
+sys.path.append('..')
+sys.path.append('../..')
+sys.path.append('../../Stage_magnet')
+from Unet_MaxProkop import UNet
+
+magnetfolder = "../../Stage_magnet"
+
 # ---------------------------------------------------------------
 # Create input images/arrays for U-Net
 # ---------------------------------------------------------------
@@ -53,25 +62,38 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
     coil_y_a = np.arange(bins_hole_y0_a,bins_hole_y0_a+bins_hole_y)
     coil_y_b = np.arange(bins_hole_y0_b,bins_hole_y0_b+bins_hole_y)
 
-    img_fieldstrength = np.zeros((bins_x,bins_y))
+    img_fieldstrength_x = np.zeros((bins_x,bins_y))
+    img_fieldstrength_y = np.zeros((bins_x,bins_y))
     for xb in range(bins_x):
         for yb in range(bins_y):
-            denominator_a = np.sqrt(np.min(np.abs(xb-coil_x)*granularity)**2+np.min(np.abs(yb-coil_y_a)*granularity)**2)
-            denominator_b = np.sqrt(np.min(np.abs(xb-coil_x)*granularity)**2+np.min(np.abs(yb-coil_y_b)*granularity)**2)
+            dx   = np.min(np.abs(xb-coil_x)*granularity)
+            dy_a = np.min(np.abs(yb-coil_y_a)*granularity)
+            dy_b = np.min(np.abs(yb-coil_y_b)*granularity)
+            alpha_a = np.arctan(dy_a/dx)
+            alpha_b = np.arctan(dy_b/dx)
+            sign_x = np.sign((xb-coil_x)[np.where(np.abs(xb-coil_x) == np.min(np.abs(xb-coil_x)))])
+            sign_y_a = np.sign((yb-coil_y_a)[np.where(np.abs(yb-coil_y_a) == np.min(np.abs(yb-coil_y_a)))])
+            sign_y_b = np.sign((yb-coil_y_b)[np.where(np.abs(yb-coil_y_b) == np.min(np.abs(yb-coil_y_b)))])
+            denominator_a = np.sqrt(dx**2+dy_a**2)
+            denominator_b = np.sqrt(dx**2+dy_b**2)
             denominator_a = (denominator_a==0)+denominator_a
             denominator_b = (denominator_b==0)+denominator_b
-            img_fieldstrength[xb,yb] = img_fieldstrength[xb,yb] + current/denominator_a + current/denominator_b
-    img_fieldstrength[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_a:bins_hole_y0_a+bins_hole_y] = np.zeros((bins_hole_x,bins_hole_y))
-    img_fieldstrength[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_b:bins_hole_y0_b+bins_hole_y] = np.zeros((bins_hole_x,bins_hole_y))
-    img_fieldstrength = img_fieldstrength/np.max(np.abs(img_fieldstrength))
+            img_fieldstrength_x[xb,yb] = img_fieldstrength_x[xb,yb] + current*( sign_y_a*np.sin(alpha_a))/denominator_a + (-current)*( sign_y_b*np.sin(alpha_b))/denominator_b
+            img_fieldstrength_y[xb,yb] = img_fieldstrength_y[xb,yb] + current*(-sign_x  *np.cos(alpha_a))/denominator_a + (-current)*(-sign_x  *np.cos(alpha_b))/denominator_b
+    # img_fieldstrength_x[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_a:bins_hole_y0_a+bins_hole_y] = np.zeros((bins_hole_x,bins_hole_y))
+    # img_fieldstrength_x[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_b:bins_hole_y0_b+bins_hole_y] = np.zeros((bins_hole_x,bins_hole_y))
+    # img_fieldstrength_y[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_a:bins_hole_y0_a+bins_hole_y] = np.zeros((bins_hole_x,bins_hole_y))
+    # img_fieldstrength_y[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_b:bins_hole_y0_b+bins_hole_y] = np.zeros((bins_hole_x,bins_hole_y))
+    img_fieldstrength_x = img_fieldstrength_x*img_material/np.max(np.abs(img_fieldstrength_x))
+    img_fieldstrength_y = img_fieldstrength_y*img_material/np.max(np.abs(img_fieldstrength_y))
 
     # plt.imshow(img_material.T)
     # plt.imshow(img_currentdensity.T)
-    # plt.imshow(img_fieldstrength.T)
+    # plt.imshow(img_fieldstrength_y.T)
     # plt.colorbar()
     # plt.show()
 
-    unet_img_set = np.stack([img_material, img_currentdensity, img_fieldstrength], axis=0)
+    unet_img_set = np.stack([img_material, img_fieldstrength_x, img_fieldstrength_y], axis=0)
     
     return unet_img_set
 
@@ -79,5 +101,5 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
 # ---------------------------------------------------------------
 # Get list of magnet variables from magnet list
 # ---------------------------------------------------------------
-def get_dimlist_from_magnetlist(ID, file = "../Stage_magnet/random_magnet_list.csv"):
+def get_dimlist_from_magnetlist(ID, file = magnetfolder+"/random_magnet_list.csv"):
     return np.genfromtxt(file, delimiter=',', unpack=True)[1:,ID+1].tolist()
