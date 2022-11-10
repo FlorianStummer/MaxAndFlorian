@@ -4,7 +4,8 @@ import sys
 import torch
 
 class Trainer:
-    def __init__(self, optimizer, optimizer_parameters, loss_fun, device, model, train_dataloader, val_dataloader, num_epochs):
+    def __init__(self, optimizer, optimizer_parameters, loss_fun, device, model, train_dataloader, val_dataloader, num_epochs, 
+    priority_mask_mode='field_strength',min_priority=0.1):
         self.optimizer_parameters = optimizer_parameters
         self.model = model
 
@@ -15,6 +16,12 @@ class Trainer:
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
         self.num_epochs = num_epochs
+
+        if not priority_mask_mode in ['field_strength', 'material']:
+            raise ValueError("unsupported priority mask mode '" + str(priority_mask_mode) + "'. has to be 'field_strength' or 'material'")
+        self.priority_mask_mode = priority_mask_mode
+        self.min_priority = min_priority
+
 
     def run_epoch(self, train, dataloader):
         loss_list = []
@@ -34,19 +41,24 @@ class Trainer:
 
             pred = self.model(x)
 
-            #priority_mask = torch.max(torch.ones_like(y)*0.1,abs(y))
+            if self.priority_mask_mode == 'field_strength':
+                y_swapped = torch.stack([y[:,1,:,:],y[:,0,:,:]])
+                field_strengths =  torch.sqrt(y*y + y_swapped*y_swapped)
+                priority_mask = torch.max(torch.ones_like(y)*self.min_priority, field_strengths)
+            elif self.priority_mask_mode == 'material':
+                material_stack = torch.stack([x[:,0,:,:],x[:,0,:,:]],1)
+                priority_mask = torch.max(torch.ones_like(y)*self.min_priority,material_stack)
 
-            priority_mask = torch.max(torch.ones_like(torch.tensor(y))*0.1,abs(torch.tensor(y))).max(dim=1).values
-            priority_mask = torch.stack([priority_mask,priority_mask],1)
+            # the loss that is used for training
+            loss_with_prio = loss_fun(pred*priority_mask, y*priority_mask)
 
-            loss = loss_fun(pred*priority_mask, y*priority_mask)
-
-            #loss = loss_fun(pred, y)
+            # the loss that we use to compare models
+            loss = loss_fun(pred, y)            
 
             loss_list.append(loss.item())
             if train:
                 self.optimizer.zero_grad()
-                loss.backward()
+                loss_with_prio.backward()
                 self.optimizer.step()
 
         return torch.tensor(loss_list).mean()
