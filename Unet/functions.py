@@ -53,7 +53,7 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
 
     # create current density image/array
     img_currentdensity = np.zeros((bins_x,bins_y))
-    img_currentdensity[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_a:bins_hole_y0_a+bins_hole_y] = current_density*np.ones((bins_hole_x,bins_hole_y))
+    img_currentdensity[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_a:bins_hole_y0_a+bins_hole_y] =  current_density*np.ones((bins_hole_x,bins_hole_y))
     img_currentdensity[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_b:bins_hole_y0_b+bins_hole_y] = -current_density*np.ones((bins_hole_x,bins_hole_y))
 
     # create material image/array
@@ -93,14 +93,15 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
     # img_fieldstrength_y[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_b:bins_hole_y0_b+bins_hole_y] = np.zeros((bins_hole_x,bins_hole_y))
     img_fieldstrength_x = img_fieldstrength_x*img_material/np.max(np.abs(img_fieldstrength_x))
     img_fieldstrength_y = img_fieldstrength_y*img_material/np.max(np.abs(img_fieldstrength_y))
-
+    img_fieldstrength_x[np.abs(img_fieldstrength_x) < 0.01] = 0
+    img_fieldstrength_y[np.abs(img_fieldstrength_y) < 0.01] = 0
     # plt.imshow(img_material.T)
     # plt.imshow(img_currentdensity.T)
     # plt.imshow(img_fieldstrength_y.T)
     # plt.colorbar()
     # plt.show()
 
-    unet_img_set = np.stack([img_material, img_fieldstrength_x, img_fieldstrength_y], axis=0)
+    unet_img_set = np.stack([img_material, img_currentdensity, img_fieldstrength_x, img_fieldstrength_y], axis=0)
     
     return unet_img_set
 
