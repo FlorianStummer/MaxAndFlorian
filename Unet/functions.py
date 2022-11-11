@@ -64,13 +64,20 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
 
     img_fieldstrength_x = np.zeros((bins_x,bins_y))
     img_fieldstrength_y = np.zeros((bins_x,bins_y))
+
     for xb in range(bins_x):
         for yb in range(bins_y):
             dx   = np.min(np.abs(xb-coil_x)*granularity)
             dy_a = np.min(np.abs(yb-coil_y_a)*granularity)
             dy_b = np.min(np.abs(yb-coil_y_b)*granularity)
             alpha_a = np.arctan(dy_a/dx)
+            if (np.isnan(alpha_a)):
+                alpha_a = np.pi/2 
+            
             alpha_b = np.arctan(dy_b/dx)
+            if (np.isnan(alpha_b)):
+                alpha_b = np.pi/2 
+            
             sign_x = np.sign((xb-coil_x)[np.where(np.abs(xb-coil_x) == np.min(np.abs(xb-coil_x)))])
             sign_y_a = np.sign((yb-coil_y_a)[np.where(np.abs(yb-coil_y_a) == np.min(np.abs(yb-coil_y_a)))])
             sign_y_b = np.sign((yb-coil_y_b)[np.where(np.abs(yb-coil_y_b) == np.min(np.abs(yb-coil_y_b)))])

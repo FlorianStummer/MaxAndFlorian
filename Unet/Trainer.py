@@ -68,24 +68,27 @@ class Trainer:
         val_hist = []
 
         for i in range(1, self.num_epochs + 1):
-            train_loss = self.run_epoch(train=True, dataloader=self.train_dataloader).item()
-            with torch.no_grad():
-                val_loss = self.run_epoch(train=False, dataloader=self.val_dataloader).item()
+            try:
+                train_loss = self.run_epoch(train=True, dataloader=self.train_dataloader).item()
+                with torch.no_grad():
+                    val_loss = self.run_epoch(train=False, dataloader=self.val_dataloader).item()
 
 
-            train_hist.append(train_loss)
-            val_hist.append(val_loss)
+                train_hist.append(train_loss)
+                val_hist.append(val_loss)
 
-            prec = 6
+                prec = 6
 
-            now = time.gmtime()
-            now_string = str(now.tm_mday)+":"+str(now.tm_hour)+":"+str(now.tm_min)+":"+str(now.tm_sec)
+                now = time.gmtime()
+                now_string = str(now.tm_mday)+":"+str(now.tm_hour)+":"+str(now.tm_min)+":"+str(now.tm_sec)
 
-            print("\t Epoch " + str(i)
-                  + ":\t Train_loss: " + (str(train_loss)[0:prec])
-                  + "\t Val_loss: " + (str(val_loss)[0:prec])
-                  + "\t" + now_string)
-            sys.stdout.flush()
+                print("\t Epoch " + str(i)
+                    + ":\t Train_loss: " + (str(train_loss)[0:prec])
+                    + "\t Val_loss: " + (str(val_loss)[0:prec])
+                    + "\t" + now_string)
+                sys.stdout.flush()
+            except KeyboardInterrupt:
+                return train_hist, val_hist
 
         return train_hist, val_hist
     
