@@ -23,6 +23,8 @@ class MagnetDataset(Dataset):
         Bx,By = np.genfromtxt(os.path.join(self.path_to_root,filename), delimiter=',', unpack=True)[2:4]
         Bx = np.resize(Bx[1:], (81,121)).T
         By = np.resize(By[1:], (81,121)).T
+        Bx[np.abs(Bx) < 0.01] = 0
+        By[np.abs(By) < 0.01] = 0
         target = np.stack([Bx, By], axis=0)
 
         inputs = create_unet_images(self.dim_list[:,actual_idx])

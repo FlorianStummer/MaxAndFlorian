@@ -81,6 +81,9 @@ class Trainer:
 
                 now = time.gmtime()
                 now_string = str(now.tm_mday)+":"+str(now.tm_hour)+":"+str(now.tm_min)+":"+str(now.tm_sec)
+                
+                if(i%5==0):
+                    torch.save(self.model.state_dict(), "last_checkpoint.pth")
 
                 print("\t Epoch " + str(i)
                     + ":\t Train_loss: " + (str(train_loss)[0:prec])
