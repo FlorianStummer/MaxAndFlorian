@@ -1,6 +1,11 @@
+from email.mime import image
+from fileinput import filename
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.ticker import MultipleLocator
 
+import os
 import sys
 sys.path.append('..')
 sys.path.append('../..')
@@ -111,3 +116,64 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
 # ---------------------------------------------------------------
 def get_dimlist_from_magnetlist(ID, file = magnetfolder+"/random_magnet_list.csv"):
     return np.genfromtxt(file, delimiter=',', unpack=True)[1:,ID+1].tolist()
+
+def plot_input_and_target(input, target):
+
+    fig, axes = plt.subplots(1,6,figsize=(20,4))
+
+    for i, name, image in zip(range(6),["material","I","initial_guess_x","initial_guess_y","target_x","target_y"], [input[0,:,:],input[1,:,:],input[2,:,:],input[3,:,:],target[0,:,:],target[1,:,:]]):
+        im = axes[i].imshow(image.T, cmap='jet',interpolation='none')
+        axes[i].set_title(name)
+
+        divider = make_axes_locatable(axes[i])
+        cax = divider.append_axes("right", size="20%", pad=0.05)
+        cbar = plt.colorbar(im, cax=cax, ticks=MultipleLocator(0.5), format="%.2f")
+
+def create_dataset_and_save_to_file(filenamelist, path_to_root = "../../Stage_magnet"):
+    # filename = "Stage1_" + str(actual_idx).zfill(6) + ".csv"
+    dim_list = np.genfromtxt(os.path.join(path_to_root,"random_magnet_list.csv"), delimiter=',', unpack=True)[1:,1:]
+    inputs  = np.random.choice([-1, 0, 1], size=(1,4,120,80))
+    targets = np.random.choice([-1, 0, 1], size=(1,2,120,80))
+    for actual_idx in range(len(filenamelist)):
+        # filename = path_to_root+"/Stage1_" + str(actual_idx).zfill(6) + ".csv"
+        Bx,By = np.genfromtxt(os.path.join(filenamelist[actual_idx]), delimiter=',', unpack=True)[2:4]
+        Bx = np.resize(Bx[1:], (81,121)).T
+        By = np.resize(By[1:], (81,121)).T
+        Bx[np.abs(Bx) < 0.01] = 0
+        By[np.abs(By) < 0.01] = 0
+        target = np.stack([Bx, By], axis=0)
+
+        input = create_unet_images(dim_list[:,actual_idx])
+
+        input  = np.asarray(input)[:,:120,:80]
+        target = np.asarray(target)[:,:120,:80]
+
+        inputs  = np.append(inputs, [input],  axis = 0)
+        targets = np.append(targets, [target], axis = 0)
+    inputs  = inputs[1:,:,:,:]
+    targets = targets[1:,:,:,:]
+
+    # # Data augmentation
+    # # Negative current solutions
+    # inputs_aug_NegCurrent = inputs
+    # inputs_aug_NegCurrent[:,1:,:,:] = -inputs_aug_NegCurrent[:,1:,:,:]
+    # inputs = np.append(inputs, inputs_aug_NegCurrent,  axis = 0)
+    # targets_aug_NegCurrent = targets
+    # targets_aug_NegCurrent[:,:,:,:] = -targets_aug_NegCurrent[:,:,:,:]
+    # targets = np.append(targets, targets_aug_NegCurrent,  axis = 0)
+
+    # # Mirrored in x-direction
+    # inputs_aug_MirroredX = inputs
+    # inputs_aug_MirroredX[:,:,:,:] = np.flip(inputs_aug_MirroredX, axis = 2)
+    # inputs = np.append(inputs, inputs_aug_MirroredX,  axis = 0)
+    # targets_aug_MirroredX = targets
+    # targets_aug_MirroredX[:,:,:,:] = np.flip(targets_aug_MirroredX, axis = 2)
+    # targets = np.append(targets, targets_aug_MirroredX,  axis = 0)
+
+    # print(inputs.shape)
+    # print(targets.shape)
+
+    # for idx in [1, 12, 21, 31]:
+    #     plot_input_and_target(inputs[idx,:,:,:],targets[idx,:,:,:])
+
+    np.savez_compressed('../../MagnetDataset.npz', input=inputs, target=targets)
