@@ -21,6 +21,6 @@ class MagnetDataset(Dataset):
         actual_idx = self.lowest_idx + idx
         
         input = self.inputs[idx]
-        target = self.inputs[idx]
+        target = self.targets[idx]
 
         return input, target
