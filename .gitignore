@@ -1,3 +1,4 @@
 Stage_magnet*
 .idea*
 *__pycache__*
+.DS_Store
