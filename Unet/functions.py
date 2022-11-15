@@ -18,32 +18,40 @@ magnetfolder = "../../Stage_magnet"
 # Create input images/arrays for U-Net
 # ---------------------------------------------------------------
 def get_bins(length, granularity = 0.05):
-    return int(length/granularity)
+    return int(round(length/granularity, 5))
 
 def round_nearest(x, a):
-    return round(round(x / a) * a,5)
+    return round(round(x / a) * a, 5)
     
 def create_unet_images(dimension_list, windings=80, granularity = 0.05):
     for i in range(len(dimension_list[:6])):
         dimension_list[i]=round_nearest(dimension_list[i],granularity)
+        # correct rounding errors
+        if i in [0,2]:
+            if(get_bins(dimension_list[i])%2==0):
+                dimension_list[i]=round(dimension_list[i]-granularity,5)
     dimension_dict = dict(zip(['stage1_hole_x','stage1_hole_y','stage1_hole_dist','stage1_topyoke_y','stage1_sideyoke_left_x','stage1_sideyoke_right_x','stage1_I'],dimension_list))
-    
     # calculate bins for binblocks in images
     bins_x = 121
     bins_y = 81
     
-    bins_yoke_x = int(get_bins(dimension_dict['stage1_sideyoke_left_x']+dimension_dict['stage1_hole_x']+dimension_dict['stage1_sideyoke_right_x']))
-    bins_yoke_y = int(get_bins(2*dimension_dict['stage1_hole_y']+2*dimension_dict['stage1_topyoke_y']+dimension_dict['stage1_hole_dist']))
+    bins_yoke_x = int(get_bins(dimension_dict['stage1_sideyoke_left_x'])+get_bins(dimension_dict['stage1_hole_x'])+get_bins(dimension_dict['stage1_sideyoke_right_x']))
+    bins_yoke_y = int(2*get_bins(dimension_dict['stage1_hole_y'])+2*get_bins(dimension_dict['stage1_topyoke_y'])+get_bins(dimension_dict['stage1_hole_dist']))
     bins_hole_x = int(get_bins(dimension_dict['stage1_hole_x']))
     bins_hole_y = int(get_bins(dimension_dict['stage1_hole_y']))
     
     bins_x0 = int((bins_x-1)/2 - ( get_bins(dimension_dict['stage1_sideyoke_left_x'])+(get_bins(dimension_dict['stage1_hole_x'])-1)/2 ))
-    bins_hole_x0 = int((bins_x+1)/2 - (get_bins(dimension_dict['stage1_hole_x'])-1)/2)
-    bins_y0 = int((bins_y+1)/2 - ( get_bins(dimension_dict['stage1_topyoke_y'])+get_bins(dimension_dict['stage1_hole_y'])+(get_bins(dimension_dict['stage1_hole_dist'])+1)/2 ))
-    bins_hole_y0_a = int((bins_y+1)/2 - ( get_bins(dimension_dict['stage1_hole_y'])+(get_bins(dimension_dict['stage1_hole_dist'])-1)/2 ))
-    bins_hole_y0_b = int(bins_hole_y0_a + get_bins(dimension_dict['stage1_hole_y']+dimension_dict['stage1_hole_dist']))
+    bins_hole_x0 = int(bins_x0 + get_bins(dimension_dict['stage1_sideyoke_left_x']))
+    bins_y0 = int((bins_y-1)/2 - ( get_bins(dimension_dict['stage1_topyoke_y'])+get_bins(dimension_dict['stage1_hole_y'])+(get_bins(dimension_dict['stage1_hole_dist'])-1)/2 ))
+    if(2*bins_y0+bins_yoke_y < 81):
+        bins_y0 = bins_y0+1
+    if(2*bins_y0+bins_yoke_y > 81):
+        bins_y0 = bins_y0-1
+    bins_hole_y0_a = int(bins_y0 + get_bins(dimension_dict['stage1_topyoke_y']))
+    bins_hole_y0_b = int(bins_hole_y0_a + get_bins(dimension_dict['stage1_hole_y']) + get_bins(dimension_dict['stage1_hole_dist']))
     
     current = dimension_dict['stage1_I']*windings
+    current_max = 250.0*windings
     current_density = current/(dimension_dict['stage1_hole_x']*dimension_dict['stage1_hole_y']*1e6)
     # mat_Air = 0.0
     mat_ARMCO = 1.0
@@ -75,14 +83,14 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
             dx   = np.min(np.abs(xb-coil_x)*granularity)
             dy_a = np.min(np.abs(yb-coil_y_a)*granularity)
             dy_b = np.min(np.abs(yb-coil_y_b)*granularity)
-            alpha_a = np.arctan(dy_a/dx)
-            if (np.isnan(alpha_a)):
-                alpha_a = np.pi/2 
-            
-            alpha_b = np.arctan(dy_b/dx)
-            if (np.isnan(alpha_b)):
+            if ( dx==0 ):
+                alpha_a = np.pi/2
+            else:
+                alpha_a = np.arctan(dy_a/dx)            
+            if ( dx==0 ):
                 alpha_b = np.pi/2 
-            
+            else:
+                alpha_b = np.arctan(dy_b/dx)
             sign_x = np.sign((xb-coil_x)[np.where(np.abs(xb-coil_x) == np.min(np.abs(xb-coil_x)))])
             sign_y_a = np.sign((yb-coil_y_a)[np.where(np.abs(yb-coil_y_a) == np.min(np.abs(yb-coil_y_a)))])
             sign_y_b = np.sign((yb-coil_y_b)[np.where(np.abs(yb-coil_y_b) == np.min(np.abs(yb-coil_y_b)))])
@@ -96,8 +104,8 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
     # img_fieldstrength_x[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_b:bins_hole_y0_b+bins_hole_y] = np.zeros((bins_hole_x,bins_hole_y))
     # img_fieldstrength_y[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_a:bins_hole_y0_a+bins_hole_y] = np.zeros((bins_hole_x,bins_hole_y))
     # img_fieldstrength_y[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_b:bins_hole_y0_b+bins_hole_y] = np.zeros((bins_hole_x,bins_hole_y))
-    img_fieldstrength_x = img_fieldstrength_x*img_material/np.max(np.abs(img_fieldstrength_x))
-    img_fieldstrength_y = img_fieldstrength_y*img_material/np.max(np.abs(img_fieldstrength_y))
+    img_fieldstrength_x = img_fieldstrength_x*img_material/np.max(np.abs(img_fieldstrength_x))*current/current_max
+    img_fieldstrength_y = img_fieldstrength_y*img_material/np.max(np.abs(img_fieldstrength_y))*current/current_max
     img_fieldstrength_x[np.abs(img_fieldstrength_x) < 0.01] = 0
     img_fieldstrength_y[np.abs(img_fieldstrength_y) < 0.01] = 0
     # plt.imshow(img_material.T)

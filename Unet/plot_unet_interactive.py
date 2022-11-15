@@ -46,12 +46,12 @@ X_0 = functions.create_unet_images(stage_init)[:,:120,:80]
 net.double()
 pred = net(torch.tensor(X_0).unsqueeze(0).double())
 
-Bx_pred = pred[0,0,:,:].detach().numpy().T * 2.5
-By_pred = pred[0,1,:,:].detach().numpy().T * 2.5
+Bx_pred = pred[0,0,:,:].detach().numpy().T
+By_pred = pred[0,1,:,:].detach().numpy().T
 BB_pred=np.sqrt(Bx_pred**2+By_pred**2)
 Bxdir_pred,Bydir_pred=np.divide(Bx_pred,BB_pred),np.divide(By_pred,BB_pred)
 
-I = ax.imshow(BB_pred,extent=[np.min(X),np.max(X),np.min(Y),np.max(Y)],cmap='gist_rainbow', vmin=0.0)#, vmax=2.0)
+I = ax.imshow(BB_pred,extent=[np.min(X),np.max(X),np.min(Y),np.max(Y)],cmap='gist_rainbow', vmin=0.0, vmax=2.0)
 Q = ax.quiver(X[skip][:80,:120],Y[skip][:80,:120],Bxdir_pred[skip],Bydir_pred[skip])
 ax.set_xlabel("x [cm]")
 ax.set_ylabel("y [cm]")
@@ -104,8 +104,8 @@ def update(val):
     else:  
         l_error.set(edgecolor='None')
 
-    I.set_data(np.sqrt((net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,0,:,:].detach().numpy().T * 2.5)**2+(net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,1,:,:].detach().numpy().T * 2.5)**2))
-    Q.set_UVC(np.divide(net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,0,:,:].detach().numpy().T * 2.5,np.sqrt((net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,0,:,:].detach().numpy().T * 2.5)**2+(net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,1,:,:].detach().numpy().T * 2.5)**2))[skip],np.divide(net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,1,:,:].detach().numpy().T * 2.5,np.sqrt((net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,0,:,:].detach().numpy().T * 2.5)**2+(net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,1,:,:].detach().numpy().T * 2.5)**2))[skip])
+    I.set_data(np.sqrt((net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,0,:,:].detach().numpy().T)**2+(net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,1,:,:].detach().numpy().T)**2))
+    Q.set_UVC(np.divide(net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,0,:,:].detach().numpy().T,np.sqrt((net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,0,:,:].detach().numpy().T)**2+(net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,1,:,:].detach().numpy().T)**2))[skip],np.divide(net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,1,:,:].detach().numpy().T,np.sqrt((net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,0,:,:].detach().numpy().T)**2+(net(torch.tensor(functions.create_unet_images(stage_list)[:,:120,:80]).unsqueeze(0).double())[0,1,:,:].detach().numpy().T)**2))[skip])
    
     fig.canvas.draw_idle()
 
