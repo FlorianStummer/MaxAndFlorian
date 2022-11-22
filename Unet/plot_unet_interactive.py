@@ -5,6 +5,7 @@ from matplotlib.widgets import Slider, Button
 import matplotlib.patches as _patches
 import torch
 from Unet_MaxProkop import UNet
+from StageMagnetBuilder import StageMagnetBuilder
 import functions
 
 magnetfolder = "../../Stage_magnet"
@@ -16,6 +17,9 @@ delta_length = 0.05
 delta_current = 10.0
 
 magnetcolor='None'
+arrowscale = 1
+
+magnet = StageMagnetBuilder("StageMagnet")
 
 def find_nearest(array, value):
     array = np.asarray(array)
@@ -39,7 +43,7 @@ nx=X.size
 ny=Y.size
 X,Y=np.meshgrid(X,Y)
 
-skip = (slice(None, None, 1), slice(None, None, 1))
+skip = (slice(None, None, arrowscale), slice(None, None, arrowscale))
 
 X_0 = functions.create_unet_images(stage_init)[:,:120,:80]
 
@@ -52,7 +56,7 @@ BB_pred=np.sqrt(Bx_pred**2+By_pred**2)
 Bxdir_pred,Bydir_pred=np.divide(Bx_pred,BB_pred),np.divide(By_pred,BB_pred)
 
 I = ax.imshow(BB_pred,extent=[np.min(X),np.max(X),np.min(Y),np.max(Y)],cmap='gist_rainbow', vmin=0.0, vmax=2.0)
-Q = ax.quiver(X[skip][:80,:120],Y[skip][:80,:120],Bxdir_pred[skip],Bydir_pred[skip])
+Q = ax.quiver(X[:80,:120][skip],Y[:80,:120][skip],Bxdir_pred[skip],Bydir_pred[skip])
 ax.set_xlabel("x [cm]")
 ax.set_ylabel("y [cm]")
 
@@ -68,13 +72,14 @@ ax.set_ylim([-2.0,2.0])
 fig.colorbar(I, ax=ax, label="Magnetic flux density [T]", extend="max")
 
 axcolor = 'lightgoldenrodyellow'
-ax_hole_x =             plt.axes([0.25, 0.30, 0.65, 0.02], facecolor=axcolor)
-ax_hole_y =             plt.axes([0.25, 0.26, 0.65, 0.02], facecolor=axcolor)
-ax_hole_dist =          plt.axes([0.25, 0.22, 0.65, 0.02], facecolor=axcolor)
-ax_topyoke_y =          plt.axes([0.25, 0.18, 0.65, 0.02], facecolor=axcolor)
-ax_sideyoke_left_x =    plt.axes([0.25, 0.14, 0.65, 0.02], facecolor=axcolor)
-ax_sideyoke_right_x =   plt.axes([0.25, 0.10, 0.65, 0.02], facecolor=axcolor)
-ax_I =                  plt.axes([0.25, 0.06, 0.65, 0.02], facecolor=axcolor)
+ax_hole_x =             plt.axes([0.25, 0.34, 0.65, 0.02], facecolor=axcolor)
+ax_hole_y =             plt.axes([0.25, 0.30, 0.65, 0.02], facecolor=axcolor)
+ax_hole_dist =          plt.axes([0.25, 0.26, 0.65, 0.02], facecolor=axcolor)
+ax_topyoke_y =          plt.axes([0.25, 0.22, 0.65, 0.02], facecolor=axcolor)
+ax_sideyoke_left_x =    plt.axes([0.25, 0.18, 0.65, 0.02], facecolor=axcolor)
+ax_sideyoke_right_x =   plt.axes([0.25, 0.14, 0.65, 0.02], facecolor=axcolor)
+ax_I =                  plt.axes([0.25, 0.10, 0.65, 0.02], facecolor=axcolor)
+ax_z =                  plt.axes([0.25, 0.06, 0.65, 0.02], facecolor=axcolor)
 
 s_hole_x = Slider(ax_hole_x, 'hole x [m]', delta_length, 3.0, valinit=stage_init[0], valstep=delta_length)
 s_hole_y = Slider(ax_hole_y, 'hole y [m]', delta_length, 3.0, valinit=stage_init[1], valstep=delta_length)
@@ -83,6 +88,7 @@ s_topyoke_y = Slider(ax_topyoke_y, 'top yoke [m]', delta_length, 4.0, valinit=st
 s_sideyoke_left_x = Slider(ax_sideyoke_left_x, 'side yoke left [m]', delta_length, 3.0, valinit=stage_init[4], valstep=delta_length)
 s_sideyoke_right_x = Slider(ax_sideyoke_right_x, 'side yoke right [m]', delta_length, 3.0, valinit=stage_init[5], valstep=delta_length)
 s_I = Slider(ax_I, 'current I [A]', 50.0, 250.0, valinit=stage_init[6], valstep=delta_current)
+s_z = Slider(ax_z, 'length z [m]', 10.*delta_length, 10.0, valinit=3.5, valstep=5.*delta_length)
 
 def update(val):
     hole_x = s_hole_x.val
@@ -92,7 +98,7 @@ def update(val):
     sideyoke_left_x = s_sideyoke_left_x.val
     sideyoke_right_x = s_sideyoke_right_x.val
     current = s_I.val
-
+    
     stage_list = [hole_x, hole_y,hole_dist,topyoke_y,sideyoke_left_x,sideyoke_right_x,current]
     
     l_magnet_yoke.set_bounds(-stage_list[0]/2.0-stage_list[4],-(2.0*stage_list[3]+2*stage_list[1]+stage_list[2])/2.0, stage_list[0]+stage_list[4]+stage_list[5], 2.0*stage_list[3]+2*stage_list[1]+stage_list[2])
@@ -117,7 +123,7 @@ s_sideyoke_left_x.on_changed(update)
 s_sideyoke_right_x.on_changed(update)
 s_I.on_changed(update)
 
-resetax = plt.axes([0.8, 0.025, 0.1, 0.03])
+resetax = plt.axes([0.8, 0.02, 0.1, 0.03])
 button = Button(resetax, 'Reset', color=axcolor, hovercolor='0.975')
 
 def reset(event):
@@ -128,6 +134,27 @@ def reset(event):
     s_sideyoke_left_x.reset()
     s_sideyoke_right_x.reset()
     s_I.reset()
+    s_z.reset()
 button.on_clicked(reset)
+
+
+fm_bdsim_ax = plt.axes([0.65, 0.02, 0.14, 0.03])
+fm_bdsim_button = Button(fm_bdsim_ax, 'Create BDSIM Magnet', color=axcolor, hovercolor='0.975')
+
+def create_bdsim_magnet(event):
+    hole_x = s_hole_x.val
+    hole_y = s_hole_y.val
+    hole_dist = s_hole_dist.val
+    topyoke_y = s_topyoke_y.val
+    sideyoke_left_x = s_sideyoke_left_x.val
+    sideyoke_right_x = s_sideyoke_right_x.val
+    current = s_I.val
+    z = s_z.val
+
+    stage_list = [hole_x, hole_y,hole_dist,topyoke_y,sideyoke_left_x,sideyoke_right_x,current]
+
+    magnet.update_parameters(stage_list, z)
+    magnet.save()
+fm_bdsim_button.on_clicked(create_bdsim_magnet)
 
 plt.show()

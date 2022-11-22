@@ -8,7 +8,7 @@ class UNet(nn.Module):
         in_channels=1,
         out_channels=2,
         depth=4,
-        wf=6,
+        wf=4,
         padding=True,
         batch_norm=False,
         up_mode='upconv',
