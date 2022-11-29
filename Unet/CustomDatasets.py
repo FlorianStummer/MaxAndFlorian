@@ -15,6 +15,7 @@ class MagnetDataset(Dataset):
         # self.dim_list = np.genfromtxt(os.path.join(self.path_to_root,"random_magnet_list.csv"), delimiter=',', unpack=True)[1:,1:]
         self.inputs = np.load('../../MagnetDataset.npz')['input'][:self.maximum_elements]
         self.targets = np.load('../../MagnetDataset.npz')['target'][:self.maximum_elements]
+        self.metainfos = np.load('../../MagnetDataset.npz')['metainfo'][:self.maximum_elements]
     def __len__(self):
         return self.length
 
@@ -23,5 +24,14 @@ class MagnetDataset(Dataset):
         
         input = self.inputs[actual_idx]
         target = self.targets[actual_idx]
+        
+        # data augmentation
+        # if(model in trainmode):
+            # Mirrored in X
+            # if(np.random.normal(0,1,1) <= 0.5):
+            #     mirror in x
+            # Negative current
+            # if(np.random.normal(0,1,1) <= 0.5):
+            #     invert current
 
         return input, target

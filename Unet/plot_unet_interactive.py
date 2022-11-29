@@ -11,13 +11,13 @@ import functions
 magnetfolder = "../../Stage_magnet"
 data_columns=['stage1_hole_x', 'stage1_hole_y', 'stage1_hole_dist', 'stage1_topyoke_y', 'stage1_sideyoke_left_x', 'stage1_sideyoke_right_x', 'stage1_I']
 
-stage_init=[0.65, 0.05, 1.75, 1.05, 0.85, 1.35, 250.0]
+stage_init=[0.75, 0.65, 0.90, 0.25, 1.25, 0.55, 100.0]
 
 delta_length = 0.05
-delta_current = 10.0
+delta_current = 5.0
 
 magnetcolor='None'
-arrowscale = 1
+arrowscale = 4
 
 magnet = StageMagnetBuilder("StageMagnet")
 
@@ -28,7 +28,7 @@ def find_nearest(array, value):
 
 # create the figure
 fig, ax = plt.subplots(1, 1, figsize=(12, 7))
-plt.subplots_adjust(left=0.25, bottom=0.40)
+plt.subplots_adjust(left=0.25, bottom=0.45)
 titlesize = 9
 ticklabelsize=6
 net = UNet(in_channels=4,out_channels=2,depth=4)
@@ -83,11 +83,11 @@ ax_z =                  plt.axes([0.25, 0.06, 0.65, 0.02], facecolor=axcolor)
 
 s_hole_x = Slider(ax_hole_x, 'hole x [m]', delta_length, 3.0, valinit=stage_init[0], valstep=delta_length)
 s_hole_y = Slider(ax_hole_y, 'hole y [m]', delta_length, 3.0, valinit=stage_init[1], valstep=delta_length)
-s_hole_dist = Slider(ax_hole_dist, 'hole distance [m]', delta_length, 4.0, valinit=stage_init[2], valstep=delta_length)
-s_topyoke_y = Slider(ax_topyoke_y, 'top yoke [m]', delta_length, 4.0, valinit=stage_init[3], valstep=delta_length)
-s_sideyoke_left_x = Slider(ax_sideyoke_left_x, 'side yoke left [m]', delta_length, 3.0, valinit=stage_init[4], valstep=delta_length)
-s_sideyoke_right_x = Slider(ax_sideyoke_right_x, 'side yoke right [m]', delta_length, 3.0, valinit=stage_init[5], valstep=delta_length)
-s_I = Slider(ax_I, 'current I [A]', 50.0, 250.0, valinit=stage_init[6], valstep=delta_current)
+s_hole_dist = Slider(ax_hole_dist, 'hole distance [m]', 0.2, 4.0, valinit=stage_init[2], valstep=delta_length)
+s_topyoke_y = Slider(ax_topyoke_y, 'top yoke [m]', 0.1, 4.0, valinit=stage_init[3], valstep=delta_length)
+s_sideyoke_left_x = Slider(ax_sideyoke_left_x, 'side yoke left [m]', 0.1, 3.0, valinit=stage_init[4], valstep=delta_length)
+s_sideyoke_right_x = Slider(ax_sideyoke_right_x, 'side yoke right [m]', 0.1, 3.0, valinit=stage_init[5], valstep=delta_length)
+s_I = Slider(ax_I, 'current I [A]', 5.0, 250.0, valinit=stage_init[6], valstep=delta_current)
 s_z = Slider(ax_z, 'length z [m]', 10.*delta_length, 10.0, valinit=3.5, valstep=5.*delta_length)
 
 def update(val):

@@ -70,7 +70,6 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
     img_currentdensity[bins_hole_x0:bins_hole_x0+bins_hole_x,bins_hole_y0_b:bins_hole_y0_b+bins_hole_y] = -current_density*np.ones((bins_hole_x,bins_hole_y))
 
     # create material image/array
-    fs_unmagnatizable=1e-6
     coil_x =   np.arange(bins_hole_x0,bins_hole_x0+bins_hole_x)
     coil_y_a = np.arange(bins_hole_y0_a,bins_hole_y0_a+bins_hole_y)
     coil_y_b = np.arange(bins_hole_y0_b,bins_hole_y0_b+bins_hole_y)
@@ -114,7 +113,7 @@ def create_unet_images(dimension_list, windings=80, granularity = 0.05):
     # plt.colorbar()
     # plt.show()
 
-    unet_img_set = np.stack([img_material, img_currentdensity, img_fieldstrength_x, img_fieldstrength_y], axis=0)
+    unet_img_set = np.flip(np.stack([img_material, img_currentdensity, img_fieldstrength_x, img_fieldstrength_y], axis=0), axis=1)
     
     return unet_img_set
 
@@ -127,10 +126,11 @@ def get_dimlist_from_magnetlist(ID, file = magnetfolder+"/random_magnet_list.csv
 
 def plot_input_and_target(input, target):
 
-    fig, axes = plt.subplots(1,6,figsize=(20,4))
-
+    fig, axes = plt.subplots(1,6,figsize=(17,4))
+    vmin_list = [-1.0, None, -1.0, -1.0, -2.0, -2.0]
+    vmax_list = [1.0, None, 1.0, 1.0, 2.0, 2.0]
     for i, name, image in zip(range(6),["material","I","initial_guess_x","initial_guess_y","target_x","target_y"], [input[0,:,:],input[1,:,:],input[2,:,:],input[3,:,:],target[0,:,:],target[1,:,:]]):
-        im = axes[i].imshow(image.T, cmap='jet',interpolation='none')
+        im = axes[i].imshow(image.T, cmap='jet',interpolation='none', vmin = vmin_list[i], vmax = vmax_list[i])
         axes[i].set_title(name)
 
         divider = make_axes_locatable(axes[i])
@@ -139,49 +139,71 @@ def plot_input_and_target(input, target):
 
 def create_dataset_and_save_to_file(filenamelist, path_to_root = "../../Stage_magnet"):
     # filename = "Stage1_" + str(actual_idx).zfill(6) + ".csv"
-    dim_list = np.genfromtxt(os.path.join(path_to_root,"random_magnet_list.csv"), delimiter=',', unpack=True)[1:,1:]
-    inputs  = np.random.choice([-1, 0, 1], size=(1,4,120,80))
-    targets = np.random.choice([-1, 0, 1], size=(1,2,120,80))
+    dim_list = np.genfromtxt(os.path.join(path_to_root,"random_magnet_list.csv"), delimiter=',', unpack=True)[0:,1:]
+    metainfos = np.swapaxes(dim_list, 0, 1)[:len(filenamelist)]
+    dim_list = dim_list[1:,:]
+    inputs  = np.random.choice([-1, 0, 1], size=(1,4,121,81))
+    targets = np.random.choice([-1, 0, 1], size=(1,2,121,81))
     for actual_idx in range(len(filenamelist)):
-        # filename = path_to_root+"/Stage1_" + str(actual_idx).zfill(6) + ".csv"
         Bx,By = np.genfromtxt(os.path.join(filenamelist[actual_idx]), delimiter=',', unpack=True)[2:4]
         Bx = np.resize(Bx[1:], (81,121)).T
         By = np.resize(By[1:], (81,121)).T
         Bx[np.abs(Bx) < 0.01] = 0
         By[np.abs(By) < 0.01] = 0
-        target = np.stack([Bx, By], axis=0)
+        target = np.flip(np.stack([Bx, By], axis=0), axis=1)
 
         input = create_unet_images(dim_list[:,actual_idx])
 
-        input  = np.asarray(input)[:,:120,:80]
-        target = np.asarray(target)[:,:120,:80]
+        input  = np.asarray(input)
+        target = np.asarray(target)
 
         inputs  = np.append(inputs, [input],  axis = 0)
         targets = np.append(targets, [target], axis = 0)
     inputs  = inputs[1:,:,:,:]
     targets = targets[1:,:,:,:]
-
+    
     # # Data augmentation
     # # Negative current solutions
-    # inputs_aug_NegCurrent = inputs
-    # inputs_aug_NegCurrent[:,1:,:,:] = -inputs_aug_NegCurrent[:,1:,:,:]
+    # inputs_aug_NegCurrent = inputs.copy()
+    # inputs_aug_NegCurrent_hidden = inputs_aug_NegCurrent[:,0,:,:]
+    # inputs_aug_NegCurrent = -inputs_aug_NegCurrent
+    # inputs_aug_NegCurrent[:,0,:,:] = inputs_aug_NegCurrent_hidden
     # inputs = np.append(inputs, inputs_aug_NegCurrent,  axis = 0)
-    # targets_aug_NegCurrent = targets
-    # targets_aug_NegCurrent[:,:,:,:] = -targets_aug_NegCurrent[:,:,:,:]
+    # targets_aug_NegCurrent = targets.copy()
+    # targets_aug_NegCurrent = -targets_aug_NegCurrent
     # targets = np.append(targets, targets_aug_NegCurrent,  axis = 0)
-
+    # metainfos_aug_NegCurrent = metainfos.copy()
+    # metainfos_aug_NegCurrent[:, 6] = -metainfos_aug_NegCurrent[:, 6]
+    # metainfos = np.append(metainfos, metainfos_aug_NegCurrent,  axis = 0)
+    
     # # Mirrored in x-direction
-    # inputs_aug_MirroredX = inputs
-    # inputs_aug_MirroredX[:,:,:,:] = np.flip(inputs_aug_MirroredX, axis = 2)
+    # inputs_aug_MirroredX = inputs.copy()
+    # inputs_aug_MirroredX = np.flip(inputs_aug_MirroredX, axis = 2)
+    # inputs_aug_MirroredX_hidden = inputs_aug_MirroredX[:,3,:,:]
+    # inputs_aug_MirroredX_hidden = np.flip(inputs_aug_MirroredX_hidden, axis=2)
+    # inputs_aug_MirroredX[:,3,:,:] = inputs_aug_MirroredX_hidden
     # inputs = np.append(inputs, inputs_aug_MirroredX,  axis = 0)
-    # targets_aug_MirroredX = targets
-    # targets_aug_MirroredX[:,:,:,:] = np.flip(targets_aug_MirroredX, axis = 2)
+    # targets_aug_MirroredX = targets.copy()
+    # targets_aug_MirroredX = np.flip(targets_aug_MirroredX, axis = 2)
+    # targets_aug_MirroredX[:,1,:,:] = -targets_aug_MirroredX[:,1,:,:]
     # targets = np.append(targets, targets_aug_MirroredX,  axis = 0)
+    # metainfos_aug_MirroredX = metainfos.copy()
+    # metainfos_aug_MirroredX[:, [5, 4]] = metainfos_aug_MirroredX[:, [4, 5]]
+    # metainfos = np.append(metainfos, metainfos_aug_MirroredX,  axis = 0)
+
+    shuffler = np.random.permutation(inputs.shape[0])
+    inputs = inputs[shuffler]
+    targets = targets[shuffler]
+    metainfos = metainfos[shuffler]
+
+    inputs  = inputs[:,:,:120,:80]
+    targets = targets[:,:,:120,:80]
 
     # print(inputs.shape)
     # print(targets.shape)
 
-    # for idx in [1, 12, 21, 31]:
+    # for idx in [1, 11, 21, 31]:
     #     plot_input_and_target(inputs[idx,:,:,:],targets[idx,:,:,:])
+    #     print(metainfos[idx])
 
-    np.savez_compressed('../../MagnetDataset.npz', input=inputs, target=targets)
+    np.savez_compressed('../../MagnetDataset.npz', input=inputs, target=targets, metainfo=metainfos)
