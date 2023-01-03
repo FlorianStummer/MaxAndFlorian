@@ -12,6 +12,8 @@ magnetfolder = "../../Stage_magnet"
 data_columns=['stage1_hole_x', 'stage1_hole_y', 'stage1_hole_dist', 'stage1_topyoke_y', 'stage1_sideyoke_left_x', 'stage1_sideyoke_right_x', 'stage1_I']
 
 stage_init=[0.75, 0.65, 0.90, 0.25, 1.25, 0.55, 100.0]
+# stage_init=[0.63, 0.05, 1.74, 1.06, 0.83, 1.34, 250.0]    # Stage 1
+# stage_init=[0.04, 1.30, 0.71, 0.33, 0.32, 0.32, 250.0]    # Stage 2
 
 delta_length = 0.05
 delta_current = 5.0
@@ -88,7 +90,7 @@ s_topyoke_y = Slider(ax_topyoke_y, 'top yoke [m]', 0.1, 4.0, valinit=stage_init[
 s_sideyoke_left_x = Slider(ax_sideyoke_left_x, 'side yoke left [m]', 0.1, 3.0, valinit=stage_init[4], valstep=delta_length)
 s_sideyoke_right_x = Slider(ax_sideyoke_right_x, 'side yoke right [m]', 0.1, 3.0, valinit=stage_init[5], valstep=delta_length)
 s_I = Slider(ax_I, 'current I [A]', 5.0, 250.0, valinit=stage_init[6], valstep=delta_current)
-s_z = Slider(ax_z, 'length z [m]', 10.*delta_length, 10.0, valinit=3.5, valstep=5.*delta_length)
+s_z = Slider(ax_z, 'length z [m]', 10.*delta_length, 20.0, valinit=3.5, valstep=5.*delta_length)
 
 def update(val):
     hole_x = s_hole_x.val
