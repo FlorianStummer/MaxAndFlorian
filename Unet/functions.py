@@ -161,6 +161,9 @@ def create_dataset_and_save_to_file(filenamelist, path_to_root = "../../Stage_ma
         targets = np.append(targets, [target], axis = 0)
     inputs  = inputs[1:,:,:,:]
     targets = targets[1:,:,:,:]
+
+    inputs  = inputs[:,:,:120,:80]
+    targets = targets[:,:,:120,:80]
     
     # # Data augmentation
     # # Negative current solutions
@@ -191,10 +194,10 @@ def create_dataset_and_save_to_file(filenamelist, path_to_root = "../../Stage_ma
     # metainfos_aug_MirroredX[:, [5, 4]] = metainfos_aug_MirroredX[:, [4, 5]]
     # metainfos = np.append(metainfos, metainfos_aug_MirroredX,  axis = 0)
 
-    shuffler = np.random.permutation(inputs.shape[0])
-    inputs = inputs[shuffler]
-    targets = targets[shuffler]
-    metainfos = metainfos[shuffler]
+    #shuffler = np.random.permutation(inputs.shape[0])
+    #inputs = inputs[shuffler]
+    #targets = targets[shuffler]
+    #metainfos = metainfos[shuffler]
 
     inputs  = inputs[:,:,:120,:80]
     targets = targets[:,:,:120,:80]
@@ -207,3 +210,28 @@ def create_dataset_and_save_to_file(filenamelist, path_to_root = "../../Stage_ma
     #     print(metainfos[idx])
 
     np.savez_compressed('../../MagnetDataset.npz', input=inputs, target=targets, metainfo=metainfos)
+
+def cache_inputs_to_separate_files(filenamelist, path_to_root, path_to_new_root):
+    dim_list = np.genfromtxt(os.path.join(path_to_root,"random_magnet_list.csv"), delimiter=',', unpack=True)[0:,1:]
+    metainfos = np.swapaxes(dim_list, 0, 1)[:len(filenamelist)]
+    dim_list = dim_list[1:,:]
+
+    if not os.path.exists(path_to_new_root):
+        os.makedirs(path_to_new_root)
+    
+    for i, cur_file in enumerate(filenamelist):
+        Bx,By = np.genfromtxt(os.path.join(cur_file), delimiter=',', unpack=True)[2:4]
+        Bx = np.resize(Bx[1:], (81,121)).T
+        By = np.resize(By[1:], (81,121)).T
+        Bx[np.abs(Bx) < 0.01] = 0
+        By[np.abs(By) < 0.01] = 0
+        tar = np.flip(np.stack([Bx, By], axis=0), axis=1)
+
+        inp = create_unet_images(dim_list[:,i])
+
+        inp  = inp[:,:120,:80]
+        tar = tar[:,:120,:80]
+
+        np.savez_compressed(os.path.join(path_to_new_root,str(i)+".npz"),input=inp,target=tar)
+
+    np.savez_compressed(os.path.join(path_to_new_root,"meta.npz"),metainfos=metainfos)
