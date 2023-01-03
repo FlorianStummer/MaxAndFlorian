@@ -161,9 +161,6 @@ def create_dataset_and_save_to_file(filenamelist, path_to_root = "../../Stage_ma
         targets = np.append(targets, [target], axis = 0)
     inputs  = inputs[1:,:,:,:]
     targets = targets[1:,:,:,:]
-
-    inputs  = inputs[:,:,:120,:80]
-    targets = targets[:,:,:120,:80]
     
     # # Data augmentation
     # # Negative current solutions
