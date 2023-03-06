@@ -2,3 +2,10 @@ Stage_magnet*
 .idea*
 *__pycache__*
 .DS_Store
+data/raw/*
+data/prepared/*
+src/model_instances_ignored/*
+
+!data/raw/.gitkeep
+!data/prepared/.gitkeep
+!src/model_instances_ignored/.gitkeep

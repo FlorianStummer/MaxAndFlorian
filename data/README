@@ -1,0 +1,4 @@
+idea: separate data from source code.
+"raw" contains .zips as delivered by Florians package. Only into this directory we should copy things manually.
+"prepared" contains the processed data s.t. it is ready to use in training (e.g. prepared input, small npzs, ...) 
+The contents of this directory will be automatically generated from the contents of the "raw" directory. The scripts doing so should be in src/data_preparation/

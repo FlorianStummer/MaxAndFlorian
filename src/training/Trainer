@@ -5,7 +5,7 @@ import torch
 
 class Trainer:
     def __init__(self, optimizer, optimizer_parameters, loss_fun, device, model, train_dataloader, val_dataloader, num_epochs, 
-    priority_mask_mode='field_strength',min_priority=0.1):
+    priority_mask_mode='field_strength',min_priority=0.1, physically_informed_loss=False,alpha=0.1):
         self.optimizer_parameters = optimizer_parameters
         self.model = model
 
@@ -16,6 +16,8 @@ class Trainer:
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
         self.num_epochs = num_epochs
+        self.physically_informed_loss = physically_informed_loss
+        self.alpha = alpha
 
         if not priority_mask_mode in ['field_strength', 'material']:
             raise ValueError("unsupported priority mask mode '" + str(priority_mask_mode) + "'. has to be 'field_strength' or 'material'")
@@ -53,7 +55,23 @@ class Trainer:
             loss_with_prio = loss_fun(pred*priority_mask, y*priority_mask)
 
             # the loss that we use to compare models
-            loss = loss_fun(pred, y)            
+            loss = loss_fun(pred, y)           
+
+            print(pred.shape)
+            #pred = y
+            x_lim = pred.shape[2]
+            y_lim = pred.shape[3]
+
+            if self.physically_informed_loss:
+                shifted_pred_xMinus1 = torch.nn.functional.pad(pred,(0,0,1,1))[:,:,:x_lim,:]
+                shifted_pred_xPlus1 = torch.nn.functional.pad(pred,(0,0,1,1))[:,:,2:,:]
+                shifted_pred_yMinus1 = torch.nn.functional.pad(pred,(1,1))[:,:,:,:y_lim]
+                shifted_pred_yPlus1 = torch.nn.functional.pad(pred,(1,1))[:,:,:,2:]
+                continuity_values = (shifted_pred_xPlus1[:,0,:,:] + shifted_pred_yPlus1[:,1,:,:] - shifted_pred_xMinus1[:,0,:,:] - shifted_pred_yMinus1[:,1,:,:])/4
+                continuity_loss =  (continuity_values*continuity_values).sum()
+                
+                #print(continuity_loss)
+                loss += self.alpha * continuity_loss
 
             loss_list.append(loss.item())
             if train:
