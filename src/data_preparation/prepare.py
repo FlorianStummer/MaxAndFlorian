@@ -9,15 +9,22 @@ import time
 def get_args() -> dict:
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--name', type=str, help='the name of the dataset to prepare in the input directory. Note that this has to be unzipped.')
-    parser.add_argument('-i', '--in_dir', type=str, help='Directory from which the raw csvs are loaded.', default="../../data/raw")
-    parser.add_argument('-o', '--out_dir', type=str, help='Directory to which the prepared dataset is written.', default="../../data/prepared")
+    parser.add_argument('-i', '--in_dir', type=str, help='Directory from which the raw csvs are loaded.')
+    parser.add_argument('-o', '--out_dir', type=str, help='Directory to which the prepared dataset is written. Default is in_dir',default=None)
     parser.add_argument('-m','--metadata_file', type=str, help='the name of the metadatafile. default is "metadata.csv"', default="metadata.csv")
     parser.add_argument('-f','--preparation_function',type=str, help='the function from src/data_preparation/preparation_functions.py that is used to prepare the data"', default="create_unet_images" )
     args = parser.parse_args()
 
-    if "." in args.name or "/" in args.name:
-        raise ValueError("invalid filename. May not contain '.' or '/' ")
+    if args.out_dir is None:
+        args.out_dir = args.in_dir
+
+    if "." in args.in_dir or "/" in args.in_dir:
+        raise ValueError("invalid input directory. May not contain '.' or '/' ")
+    
+    if "." in args.out_dir or "/" in args.out_dir:
+        raise ValueError("invalid output directory. May not contain '.' or '/' ")
+    
+    
     
     return args
 
@@ -25,9 +32,11 @@ def get_args() -> dict:
 
 if __name__ == "__main__":
     args = get_args()
-    #
-    input_path = os.path.abspath(os.path.join(args.in_dir,args.name))
-    output_path = os.path.abspath(os.path.join(args.out_dir,args.name))
+
+    data_dir = "../../data"
+    
+    input_path = os.path.abspath(os.path.join(data_dir,"raw", args.in_dir))
+    output_path = os.path.abspath(os.path.join(data_dir,"prepared", args.out_dir))
     metadata_path = os.path.abspath(os.path.join(input_path,args.metadata_file))
 
     print("reading input data from", input_path)
