@@ -15,12 +15,6 @@ class UNet(nn.Module):
         drop_out=0,
     ):
         """
-        Implementation of
-        U-Net: Convolutional Networks for Biomedical Image Segmentation
-        (Ronneberger et al., 2015)
-        https://arxiv.org/abs/1505.04597
-        Using the default arguments will yield the exact version used
-        in the original paper
         Args:
             in_channels (int): number of input channels
             out_channels (int): number of output channels
