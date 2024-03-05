@@ -17,7 +17,7 @@ def main():
     # hyperparameters
     batch_size = 4
     learning_rate = 0.001
-    num_epochs = 10
+    num_epochs = 100
     depth = 3
     wf = 4
     padding = True
@@ -27,6 +27,8 @@ def main():
     # load dataset
     dataset = Dataset_Dipole_H(dataset_path, maximum_elements=maximum_elements, mdfile=mdfile)
     print("Dataset loaded")
+    # dataset.prepare_all(overwrite=True)
+    # print("Dataset prepared")
 
     # split dataset into train and test
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [len(dataset) - int(len(dataset)*traintestsplit), int(len(dataset)*traintestsplit)])
@@ -56,10 +58,7 @@ def main():
     print("Trainer created")
 
     # train model
-    train_hist = trainer.train(train_loader, num_epochs)
-    
-    # test model
-    test_hist = trainer.test(test_loader)
+    train_hist, test_hist = trainer.run_epoch(train_loader, test_loader, num_epochs)
 
     # save model
     trainer.save_model("UNet_Dipole_H.pt")

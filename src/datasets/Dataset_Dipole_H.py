@@ -37,14 +37,21 @@ class Dataset_Dipole_H(torch_dataset):
         _, self.maxX, _, self.maxY = self.magnetinfos.get_largest_magnet_dimensions()
         self.xbins = int(np.ceil(self.maxX / self.spacing))
         self.ybins = int(np.ceil(self.maxY / self.spacing))
-        # self.meta = np.load(os.path.join(self.path_to_root,"meta.npz"))["metainfos"][self.lowest_idx:self.highest_idx,:]
 
     def __len__(self):
         return self.length
 
     def __getitem__(self, idx):
         actual_idx = idx
+        # load the npz file
+        filename = os.path.join(self.path_to_root, 'prepared', self.npzlist[actual_idx])
+        inp, tar = np.load(filename)['input'], np.load(filename)['target']
 
+        # TODO data augmentation
+        
+        return inp, tar
+
+    def prepare(self, actual_idx):
         # prepare the input
         dipole = self.magnetinfos.get_magnet_by_name(self.npzlist[actual_idx][:-4])
         magnet = dipole.magnet2D
@@ -100,10 +107,6 @@ class Dataset_Dipole_H(torch_dataset):
                 if i*self.spacing < dipole.aper_x * 0.5 * 2.0 and j*self.spacing < dipole.aper_y * 0.5:
                     inp[i, j, 4] = 1
 
-        
-
-
-
         # prepare the target
         tar_unprepared = np.load(os.path.join(self.path_to_root, self.npzlist[actual_idx]))['data']
         tar = np.zeros((self.xbins, self.ybins, 2))
@@ -116,13 +119,17 @@ class Dataset_Dipole_H(torch_dataset):
         # set fields to zero if field is smaller than 1e-4
         tar[np.abs(tar) < 1e-4] = 0
 
-        # TODO data augmentation
-
         # move channels to the front
         inp = np.moveaxis(inp, -1, 0)
         tar = np.moveaxis(tar, -1, 0)
 
-        return inp, tar
+        # save inp and tar in npz file
+        np.savez(os.path.join(self.path_to_root, 'prepared', self.npzlist[actual_idx]), input=inp, target=tar)
+
+    def prepare_all(self, overwrite=False):
+        for i in range(self.maximum_elements):
+            if not os.path.exists(os.path.join(self.path_to_root, 'prepared', self.npzlist[i])) or overwrite:
+                self.prepare(i)
 
 def plot_to_axis(axs, img, title):
     axs.imshow(img.T, origin='lower')
