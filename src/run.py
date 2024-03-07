@@ -11,13 +11,13 @@ def main():
     # dataset parameters
     dataset_path = "data/raw/npz_select_1cmSpacing"
     mdfile = "md_hshaped_v1"
-    maximum_elements = 400
+    maximum_elements = 16000
     traintestsplit = 0.1
 
     # hyperparameters
-    batch_size = 4
+    batch_size = 64
     learning_rate = 0.001
-    num_epochs = 100
+    num_epochs = 150
     depth = 3
     wf = 4
     padding = True
