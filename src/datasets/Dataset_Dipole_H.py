@@ -6,7 +6,7 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
 class Dataset_Dipole_H(torch_dataset):
-    def __init__(self, path_to_root, transforms=None, maximum_elements=128, mdfile="md_hshaped_v1"):
+    def __init__(self, path_to_root, transforms=None, maximum_elements=128000, mdfile="md_hshaped_v1", prepareFolder="prepared"):
         self.path_to_root = path_to_root
         self.transforms = transforms
         self.npzlist = []
@@ -24,6 +24,7 @@ class Dataset_Dipole_H(torch_dataset):
             self.magnetinfos.append_magnet(allmagnets.get_magnet_by_name(element[:-4]))
         self.maximum_elements = min(maximum_elements, len(self.npzlist))
         self.length = self.maximum_elements 
+        self.prepareFolder = prepareFolder
 
         # get the spacing from the first npz file
         dummy = np.load(os.path.join(self.path_to_root, self.npzlist[0]))['data']
@@ -44,26 +45,30 @@ class Dataset_Dipole_H(torch_dataset):
     def __getitem__(self, idx):
         actual_idx = idx
         # load the npz file
-        filename = os.path.join(self.path_to_root, 'prepared', self.npzlist[actual_idx])
+        filename = os.path.join(self.path_to_root, self.prepareFolder, self.npzlist[actual_idx])
         inp, tar = np.load(filename)['input'], np.load(filename)['target']
 
         # TODO data augmentation
         
         return inp, tar
+        # return {"inp": inp, "metadata": metadata}, tar
 
     def prepare(self, actual_idx):
+        xbinsFixed = 224
+        ybinsFixed = 160
         # prepare the input
         dipole = self.magnetinfos.get_magnet_by_name(self.npzlist[actual_idx][:-4])
         magnet = dipole.magnet2D
-        inp = np.zeros((self.xbins, self.ybins, 5))
-        # create input image 1: all the bins are 1 inside the yoke and 0 outside
+        # inp = np.zeros((self.xbins, self.ybins, 5))
+        inp = np.zeros((xbinsFixed, ybinsFixed, 5))
+        # create input image 0: all the bins are 1 inside the yoke and 0 outside
         for yoke_i in magnet.yokeCoords:
             yoke = Polygon(yoke_i)
             for i in range(self.xbins):
                 for j in range(self.ybins):
                     if yoke.contains(Point(i*self.spacing, j*self.spacing)):
                         inp[i, j, 0] = 1
-        # create input image 2: all the bins in the coils are the current density
+        # create input image 1: all the bins in the coils are the current density
         for index, coil_i in enumerate(magnet.coilCoords):
             coil_i_array = np.array(coil_i)
             coil_i_array_x = coil_i_array[:,0]
@@ -75,7 +80,7 @@ class Dataset_Dipole_H(torch_dataset):
                 for j in range(self.ybins):
                     if coil.contains(Point(i*self.spacing, j*self.spacing)):
                         inp[i, j, 1] = magnet.currentDensities[index]
-        # create input image 3 and 4: the field strength in x and y direction including the sign
+        # create input image 2 and 3: the field strength in x and y direction including the sign
                     dx = np.min(np.abs(i*self.spacing-coil_i_array_x))
                     dy = np.min(np.abs(j*self.spacing-coil_i_array_y))
                     # get the distance and angle to the coil
@@ -101,15 +106,18 @@ class Dataset_Dipole_H(torch_dataset):
                         sign_y = 0
                     inp[i, j, 2] += sign_x * np.sin(alpha) * magnet.currentDensities[index] / r
                     inp[i, j, 3] += sign_y * np.cos(alpha) * magnet.currentDensities[index] / r
-        # create input image 5: good field region form magnet.aper_x and magnet.aper_y
-        for i in range(self.xbins):
-            for j in range(self.ybins):
+        # create input image 4: priority map (good field region form magnet.aper_x and magnet.aper_y --> 100, yoke --> 1, rest --> 0)
+        for i in range(xbinsFixed):
+            for j in range(ybinsFixed):
+                inp[i, j, 4] = 0
+                if i*self.spacing < dipole.yoke_x * 0.5 and j*self.spacing < dipole.yoke_y * 0.5:
+                    inp[i, j, 4] = 30 / (dipole.yoke_x * dipole.yoke_y * 0.25 - dipole.aper_x * dipole.aper_y * 0.25) 
                 if i*self.spacing < dipole.aper_x * 0.5 * 2.0 and j*self.spacing < dipole.aper_y * 0.5:
-                    inp[i, j, 4] = 1
+                    inp[i, j, 4] = 100 / (dipole.aper_x * dipole.aper_y * 0.25)
 
         # prepare the target
         tar_unprepared = np.load(os.path.join(self.path_to_root, self.npzlist[actual_idx]))['data']
-        tar = np.zeros((self.xbins, self.ybins, 2))
+        tar = np.zeros((xbinsFixed, ybinsFixed, 2))
         for i in range(tar_unprepared.shape[0]):
             for j in range(tar_unprepared.shape[1]):
                 x = int(np.round(tar_unprepared[i, j, 0] / (self.spacing*1e3)))
@@ -124,11 +132,13 @@ class Dataset_Dipole_H(torch_dataset):
         tar = np.moveaxis(tar, -1, 0)
 
         # save inp and tar in npz file
-        np.savez(os.path.join(self.path_to_root, 'prepared', self.npzlist[actual_idx]), input=inp, target=tar)
+        if not os.path.exists(os.path.join(self.path_to_root, self.prepareFolder)):
+            os.makedirs(os.path.join(self.path_to_root, self.prepareFolder))
+        np.savez(os.path.join(self.path_to_root, self.prepareFolder, self.npzlist[actual_idx]), input=inp, target=tar)
 
     def prepare_all(self, overwrite=False):
         for i in range(self.maximum_elements):
-            if not os.path.exists(os.path.join(self.path_to_root, 'prepared', self.npzlist[i])) or overwrite:
+            if not os.path.exists(os.path.join(self.path_to_root, self.prepareFolder, self.npzlist[i])) or overwrite:
                 self.prepare(i)
 
 def plot_to_axis(axs, img, title):
@@ -155,6 +165,7 @@ def plot_ds(ds, idx):
 
 def main():
     ds = Dataset_Dipole_H("data/raw/npz_select_1cmSpacing")
+    ds.prepare_all(overwrite=True)
     plot_ds(ds, 0)
 
 if __name__ == "__main__":
