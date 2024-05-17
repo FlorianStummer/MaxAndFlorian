@@ -34,7 +34,7 @@ class Trainer_Dipole_H:
         return train_hist, test_hist
     
     def getweights(self, data):
-        weights = data[:, 4, :, :]
+        weights = data[:, 17, :, :]
         # weights[weights == 1] = 0.0
         weights = weights.unsqueeze(1).expand(-1, 2, -1, -1)
         weights = weights.to(self.device, dtype=torch.float32)
@@ -48,11 +48,9 @@ class Trainer_Dipole_H:
             data, target = data.to(self.device, dtype=torch.float32), target.to(self.device, dtype=torch.float32)
             self.optimizer.zero_grad()
             output = self.model(data)
-            
             # loss = self.criterion(output, target)
             loss = self.criterion(output, target, weights)
             loss.backward()
-            
             self.optimizer.step()
             train_loss += loss.item()
         return train_loss
@@ -62,9 +60,10 @@ class Trainer_Dipole_H:
         test_loss = 0
         with torch.no_grad():
             for data, target in test_loader:
+                weights = self.getweights(data)
                 data, target = data.to(self.device, dtype=torch.float32), target.to(self.device, dtype=torch.float32)
                 output = self.model(data)
-                weights = self.getweights(data)
+                # test_loss += self.criterion(output, target).item()
                 test_loss += self.criterion(output, target, weights).item()
         return test_loss
     

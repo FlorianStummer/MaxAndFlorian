@@ -17,15 +17,15 @@ def main():
     # maximum_elements = 2560
     # maximum_elements = 80
     traintestsplit = 0.1
-    # prepareFolder = "prepared"
+    prepareFolder = "prepared"
     # prepareFolder = "prepared_v1_weighted_o1"
-    prepareFolder = "prepared_v2_weighted_o0_areaconsidered"
+    # prepareFolder = "prepared_v2_weighted_o0_areaconsidered"
 
     # hyperparameters
     batch_size = 64
     # batch_size = 8
     learning_rate = 0.001
-    num_epochs = 301
+    num_epochs = 151
     # num_epochs = 11
     depth = 5
     wf = 4
@@ -50,7 +50,7 @@ def main():
     print("Using", device)
 
     # load model
-    model = UNet(in_channels=5, out_channels=2, depth=depth, wf=wf, padding=padding, up_mode=up_mode, batch_norm=batch_norm, drop_out=drop_out)
+    model = UNet(in_channels=18, out_channels=2, depth=depth, wf=wf, padding=padding, up_mode=up_mode, batch_norm=batch_norm, drop_out=drop_out)
     print(model)
 
     # set optimizer
