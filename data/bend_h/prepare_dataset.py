@@ -26,7 +26,8 @@ class PrepareDataset:
         md_random_small = md_random_small.load(os.path.join(self.path_to_root, 'md_dipole_hshaped_v2_random_small.pkl'))
         md_straight = magnetdesigner.designer.magnetdataset()
         md_straight = md_straight.load(os.path.join(self.path_to_root, 'md_dipole_hshaped_v2_straight.pkl'))
-        
+        print("Magnetdesigner loaded")
+
         datacollection = []
         for npz in self.npzlist:
             num = npz.split('/')[-1][:-4]
@@ -38,12 +39,14 @@ class PrepareDataset:
                 datacollection.append({'magnet': md_random_small.get_magnet_by_name(num), 'npz': npz})
             elif 'straight_5mm' in npz:
                 datacollection.append({'magnet': md_straight.get_magnet_by_name(num), 'npz': npz})
+        print("Datacollection length:", len(datacollection))
 
         allmagnets = magnetdesigner.designer.magnetdataset()
         for data in datacollection:
             allmagnets.append_magnet(data['magnet'])
         allmagnets = magnetdesigner.designer.magnetdataset()
         allmagnets.magnets = md_random.magnets + md_random_large.magnets + md_random_small.magnets + md_straight.magnets
+        print("Allmagnets length:", len(allmagnets.magnets))
         
         # get the spacing from the first npz file
         dummy = np.load(os.path.join(self.npzlist[0]))['data']
