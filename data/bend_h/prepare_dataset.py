@@ -8,7 +8,7 @@ import magnetdesigner
 import magnetoptimiser
 
 class PrepareDataset:
-    def __init__(self, path_to_root, prepareFolder):
+    def __init__(self, path_to_root, prepareFolder, N):
         self.path_to_root = path_to_root
         self.prepareFolder = prepareFolder
         dsetfolders = ['random_5mm', 'random_large_5mm', 'random_small_5mm', 'straight_5mm']
@@ -16,7 +16,6 @@ class PrepareDataset:
         for dsetfolder in dsetfolders:
             self.npzlist += [os.path.join(path_to_root, dsetfolder, f) for f in os.listdir(os.path.join(self.path_to_root, dsetfolder)) if f.endswith('.npz')]
         self.npzlist.sort()
-        print(self.npzlist)
 
         md_random = magnetdesigner.designer.magnetdataset()
         md_random = md_random.load(os.path.join(self.path_to_root, 'md_dipole_hshaped_v2_random.pkl'))
@@ -47,7 +46,7 @@ class PrepareDataset:
         allmagnets = magnetdesigner.designer.magnetdataset()
         allmagnets.magnets = md_random.magnets + md_random_large.magnets + md_random_small.magnets + md_straight.magnets
         print("Allmagnets length:", len(allmagnets.magnets))
-        
+
         # get the spacing from the first npz file
         dummy = np.load(os.path.join(self.npzlist[0]))['data']
         xlist = list(set(dummy[:,:,0].flatten()))
@@ -72,8 +71,9 @@ class PrepareDataset:
         print(allmagnets.get_magnets_number())
 
         for idx, entry in enumerate(datacollection):
-            print("Preparing", idx)
-            self.prepare(entry['magnet'], entry['npz'], str(idx).zfill(8))
+            if N * 1000 <= idx < (N + 1) * 1000:
+                print("Preparing", idx)
+                self.prepare(entry['magnet'], entry['npz'], str(idx).zfill(8))
 
 
     def prepare(self, dipole, npz, idx):
@@ -170,7 +170,7 @@ class PrepareDataset:
         B0, gfr_x, gfr_y = self.get_B0_and_GFR(dipole)
         for i in range(self.xbins):
             for j in range(self.ybins):
-                if i*self.spacing <= gfr_x * 0.5 and j*self.spacing <= gfr_y * 0.5:
+                if i*self.spacing <= gfr_x and j*self.spacing <= gfr_y:
                     inp[i, j, 16] = B0
         
 
@@ -206,8 +206,20 @@ class PrepareDataset:
         np.savez(os.path.join(self.prepareFolder, idx), input=inp, target=tar)
 
     def get_B0_and_GFR(self, dipole):
-        return 1.0, 0.01, 0.01
-    
+        trainer = magnetoptimiser.wrappers.Wrapper_Dipole_Hshape_RegNet_v002
+        inputcolumns = ['fieldTolerance', 'maxCurrentDensity', 'rho0', 'usedPowerInPercent', 'w_leg_factor', 'B_design', 'aper_x', 'aper_y']
+        prop = dipole.get_properties()
+        prop = pd.DataFrame(prop, index=[0])
+        # only keep the columns that are in the inputcolumns
+        prop = prop[inputcolumns]
+        prop = prop.values.astype(float)
+        output = trainer.predict(prop)
+        B0 = output[0, 0]
+        gfr_x = output[0, 17]
+        gfr_y = output[0, 33]
+        return B0, gfr_x, gfr_y
+        
+        
     # def get_B0_and_GFR(magnet):
     #     trainer = magnetoptimiser.trainers.DefaultTrainer_Dipole_Hshape
     #     inputcolumns = ['gfr_x', 'gfr_y', 'gfr_margin', 'maxCurrentDensity', 'fieldTolerance', 'aper_x', 'aper_y', 'aper_x_poleoverhang', 'aper_y_distFromCoil', 'aper_x_tapering', 'aper_x_taperingstop', 'B_design', 'B_design_margin', 'B_real', 'coil_width', 'coil_height', 'yoke_x', 'yoke_y', 'maxBmaterial', 'fillfactor', 'windings', 'w', 'w_leg', 'totalCurrent', 'totalCurrentMax', 'coilAreaTotal', 'coilWeightTotal', 'coilVolumeTotal', 'length', 'yokeAreaTotal', 'yokeWeightTotal', 'yokeVolumeTotal', 'shims_False', 'shape_H', 'material_coil_Copper', 'material_yoke_Pure Iron', 'symmetry_reflectxydipole', 'coolingRequirementMax_Liquid Nitrogen', 'coolingRequirementMax_None', 'coolingRequirementMax_Water']
@@ -231,8 +243,12 @@ class PrepareDataset:
     #     gfr_y = output[0, 32]
     #     return B0, gfr_x, gfr_y
 
-def main():
-    PrepareDataset("data/bend_h", "data/bend_h/prepared")
+def main(N):
+    PrepareDataset("data/bend_h", "data/bend_h/prepared", N)
+    # PrepareDataset("/eos/experiment/shadows/user/flstumme/ai/data/bend_h/raw", "/eos/experiment/shadows/user/flstumme/ai/bend_h/prepared", N)
 
 if __name__ == "__main__":
-    main()
+    # get N from command line
+    # N = sys.argv[1]
+    N = 0
+    main(N)
