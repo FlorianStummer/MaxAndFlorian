@@ -13,17 +13,17 @@ def main():
     # dataset parameters
     dataset_path = "data/bend_h/prepared"
     dataset_path = "/eos/experiment/shadows/user/flstumme/ai/data/bend_h//prepared"
-    # maximum_elements = 75445
+    maximum_elements = 75445
     # maximum_elements = 2560
-    maximum_elements = 200
+    # maximum_elements = 200
     traintestsplit = 0.1
 
     # hyperparameters
-    # batch_size = 64
-    batch_size = 8
+    batch_size = 128
+    # batch_size = 8
     learning_rate = 0.001
     # num_epochs = 501
-    num_epochs = 150
+    num_epochs = 1000
     depth = 5
     wf = 4
     padding = True
