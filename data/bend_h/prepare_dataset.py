@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+import sys
 from shapely.geometry import Polygon, Point
 from shapely.affinity import scale
 from shapely.measurement import distance
@@ -71,7 +72,7 @@ class PrepareDataset:
         print(allmagnets.get_magnets_number())
 
         for idx, entry in enumerate(datacollection):
-            if N * 1000 <= idx < (N + 1) * 1000:
+            if N * 100 <= idx < (N + 1) * 100:
                 print("Preparing", idx)
                 self.prepare(entry['magnet'], entry['npz'], str(idx).zfill(8))
 
@@ -244,11 +245,11 @@ class PrepareDataset:
     #     return B0, gfr_x, gfr_y
 
 def main(N):
-    PrepareDataset("data/bend_h", "data/bend_h/prepared", N)
-    # PrepareDataset("/eos/experiment/shadows/user/flstumme/ai/data/bend_h/raw", "/eos/experiment/shadows/user/flstumme/ai/bend_h/prepared", N)
+    # PrepareDataset("data/bend_h", "data/bend_h/prepared", N)
+    PrepareDataset("/eos/experiment/shadows/user/flstumme/ai/data/bend_h/raw", "/eos/experiment/shadows/user/flstumme/ai/bend_h/prepared", N)
 
 if __name__ == "__main__":
     # get N from command line
-    # N = sys.argv[1]
-    N = 0
+    N = sys.argv[1]
+    # N = 0
     main(N)
