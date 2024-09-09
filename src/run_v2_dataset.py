@@ -12,6 +12,7 @@ import pickle
 def main():
     # dataset parameters
     dataset_path = "data/bend_h/prepared"
+    dataset_path = "/eos/experiment/shadows/user/flstumme/ai/data/bend_h//prepared"
     # maximum_elements = 75445
     # maximum_elements = 2560
     maximum_elements = 200
