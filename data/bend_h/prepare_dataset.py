@@ -250,6 +250,7 @@ def main(N):
 
 if __name__ == "__main__":
     # get N from command line
-    N = sys.argv[1]
+    N = int(sys.argv[1])
+    print("N:", N)
     # N = 0
     main(N)
