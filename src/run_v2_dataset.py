@@ -18,8 +18,8 @@ def main():
     path_to_root = "/eos/experiment/shadows/user/flstumme/ai/models/"
     if not os.path.exists(path_to_root):
         os.makedirs(path_to_root)
-    # maximum_elements = 75445
-    maximum_elements = 5120
+    maximum_elements = 75445
+    # maximum_elements = 5120
     # maximum_elements = 2560
     # maximum_elements = 200
     traintestsplit = 0.1
@@ -29,9 +29,9 @@ def main():
     # batch_size = 128
     # batch_size = 8
     learning_rate = 0.001
-    num_epochs = 51
+    # num_epochs = 51
     # num_epochs = 501
-    # num_epochs = 1001
+    num_epochs = 1001
     depth = 5
     wf = 4
     padding = True
