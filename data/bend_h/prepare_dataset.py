@@ -71,10 +71,16 @@ class PrepareDataset:
         print("Ybins:", self.ybins)
         print(allmagnets.get_magnets_number())
 
+
+        numberlist = os.listdir(self.prepareFolder)
+        numberlist = [int(f[:-4]) for f in numberlist]
         for idx, entry in enumerate(datacollection):
-            if N * 100 <= idx < (N + 1) * 100:
+            # if N * 100 <= idx < (N + 1) * 100:
+            if idx in numberlist:
+                continue
+            else:
                 print("Preparing", idx)
-                self.prepare(entry['magnet'], entry['npz'], str(idx).zfill(8))
+                # self.prepare(entry['magnet'], entry['npz'], str(idx).zfill(8))
 
 
     def prepare(self, dipole, npz, idx):
