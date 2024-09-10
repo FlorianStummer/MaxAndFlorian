@@ -71,6 +71,8 @@ class PrepareDataset:
         print("Ybins:", self.ybins)
         print(allmagnets.get_magnets_number())
 
+        if not os.path.exists(self.prepareFolder):
+            os.makedirs(self.prepareFolder)
         for idx, entry in enumerate(datacollection):
             if N * 100 <= idx < (N + 1) * 100:
                 print("Preparing", idx)
@@ -202,9 +204,10 @@ class PrepareDataset:
         tar = np.moveaxis(tar, -1, 0)
 
         # save inp and tar in npz file
-        if not os.path.exists(self.prepareFolder):
-            os.makedirs(self.prepareFolder)
-        np.savez(os.path.join(self.prepareFolder, idx), input=inp, target=tar)
+        # if not os.path.exists(self.prepareFolder):
+        #     os.makedirs(self.prepareFolder)
+        # np.savez(os.path.join(self.prepareFolder, idx), input=inp, target=tar)
+        np.savez(".", input=inp, target=tar)
 
     def get_B0_and_GFR(self, dipole):
         trainer = magnetoptimiser.wrappers.Wrapper_Dipole_Hshape_RegNet_v002
