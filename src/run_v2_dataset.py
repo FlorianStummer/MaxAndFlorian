@@ -7,23 +7,29 @@ from training.Trainer_Dipole_H import Trainer_Dipole_H
 import torch
 import matplotlib.pyplot as plt
 import pickle
+import os
 
 
 def main():
     # dataset parameters
     dataset_path = "data/bend_h/prepared"
-    dataset_path = "/eos/experiment/shadows/user/flstumme/ai/data/bend_h//prepared"
-    maximum_elements = 75445
+    path_to_root = "models/"
+    dataset_path = "/eos/experiment/shadows/user/flstumme/ai/data/bend_h/prepared"
+    path_to_root = "/eos/experiment/shadows/user/flstumme/ai/models/"
+    if not os.path.exists(path_to_root):
+        os.makedirs(path_to_root)
+    # maximum_elements = 75445
     # maximum_elements = 2560
-    # maximum_elements = 200
+    maximum_elements = 200
     traintestsplit = 0.1
 
     # hyperparameters
-    batch_size = 128
+    batch_size = 512
+    # batch_size = 128
     # batch_size = 8
     learning_rate = 0.001
     # num_epochs = 501
-    num_epochs = 1000
+    num_epochs = 1001
     depth = 5
     wf = 4
     padding = True
@@ -71,7 +77,7 @@ def main():
     print("Trainer created")
 
     # train model
-    trainer.run_epochs(train_loader, test_loader, num_epochs, model_name="UNet_Dipole_H_v2")
+    trainer.run_epochs(train_loader, test_loader, num_epochs, model_name="UNet_Dipole_H_v2", path_to_root=path_to_root)
 
     # evaluate model
     trainer.load_model("UNet_Dipole_H_v2_epoch0150.pt")

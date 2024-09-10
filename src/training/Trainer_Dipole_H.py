@@ -15,7 +15,7 @@ class Trainer_Dipole_H:
         self.device = device
         self.model.to(device)
 
-    def run_epochs(self, train_loader, test_loader, epochs, model_name="UNet"):
+    def run_epochs(self, train_loader, test_loader, epochs, model_name="UNet", path_to_root=""):
         time_start = time.time()
         timestamp = time.time()
         times = []
@@ -27,10 +27,10 @@ class Trainer_Dipole_H:
             times.append(time.time() - timestamp)
             timestamp = time.time()
             if epoch % 10 == 0:
-                self.save_model("{}_epoch{}.pt".format(model_name, str(epoch).zfill(4)))
-                self.save_hist(train_hist, test_hist, times)
+                self.save_model("{}{}_epoch{}.pt".format(path_to_root, model_name, str(epoch).zfill(4)))
+                self.save_hist(train_hist, test_hist, times, path_to_root)
                 # self.evaluate(test_loader)
-        self.save_model("{}_epoch{}.pt".format(model_name, str(epochs).zfill(4)))
+        self.save_model("{}{}_epoch{}.pt".format(path_to_root, model_name, str(epochs).zfill(4)))
         print('Total time:', time.time() - time_start)
     
     def getweights(self, data):
@@ -152,12 +152,12 @@ class Trainer_Dipole_H:
         print('Model loaded from', path)
         return self.model
     
-    def save_hist(self, train_hist, test_hist, times):
-        with open("train_hist.pkl", "wb") as file:
+    def save_hist(self, train_hist, test_hist, times, path_to_root=""):
+        with open("{}train_hist.pkl".format(path_to_root), "wb") as file:
             pickle.dump(train_hist, file)
-        with open("test_hist.pkl", "wb") as file:
+        with open("{}test_hist.pkl".format(path_to_root), "wb") as file:
             pickle.dump(test_hist, file)
-        with open("times.pkl", "wb") as file:
+        with open("{}times.pkl".format(path_to_root), "wb") as file:
             pickle.dump(times, file)
     
     def get_model(self):
