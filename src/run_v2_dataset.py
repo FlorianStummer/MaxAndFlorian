@@ -19,8 +19,9 @@ def main():
     if not os.path.exists(path_to_root):
         os.makedirs(path_to_root)
     # maximum_elements = 75445
+    maximum_elements = 5120
     # maximum_elements = 2560
-    maximum_elements = 200
+    # maximum_elements = 200
     traintestsplit = 0.1
 
     # hyperparameters
