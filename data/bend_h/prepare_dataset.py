@@ -246,7 +246,7 @@ class PrepareDataset:
 
 def main(N):
     # PrepareDataset("data/bend_h", "data/bend_h/prepared", N)
-    PrepareDataset("/eos/experiment/shadows/user/flstumme/ai/data/bend_h/raw", "/eos/experiment/shadows/user/flstumme/ai/bend_h/prepared", N)
+    PrepareDataset("/eos/experiment/shadows/user/flstumme/ai/data/bend_h/raw", "/eos/experiment/shadows/user/flstumme/ai/data/bend_h/prepared", N)
 
 if __name__ == "__main__":
     # get N from command line
