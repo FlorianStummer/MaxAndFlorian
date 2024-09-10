@@ -28,8 +28,9 @@ def main():
     # batch_size = 128
     # batch_size = 8
     learning_rate = 0.001
+    num_epochs = 51
     # num_epochs = 501
-    num_epochs = 1001
+    # num_epochs = 1001
     depth = 5
     wf = 4
     padding = True
@@ -41,7 +42,7 @@ def main():
     dataset = Dataset_Bend_H(dataset_path, maximum_elements=maximum_elements)
     print("Dataset loaded")
 
-    plot_ds(dataset, 3)
+    # plot_ds(dataset, 3)
 
     # split dataset into train and test
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [len(dataset) - int(len(dataset)*traintestsplit), int(len(dataset)*traintestsplit)])
