@@ -14,8 +14,8 @@ def main():
     # dataset parameters
     dataset_path = "data/bend_h/prepared"
     path_to_root = "models/"
-    # dataset_path = "/eos/experiment/shadows/user/flstumme/ai/data/bend_h/prepared"
-    # path_to_root = "/eos/experiment/shadows/user/flstumme/ai/models/"
+    dataset_path = "/eos/experiment/shadows/user/flstumme/ai/data/bend_h/prepared"
+    path_to_root = "/eos/experiment/shadows/user/flstumme/ai/models/"
     if not os.path.exists(path_to_root):
         os.makedirs(path_to_root)
     maximum_elements = 75445
