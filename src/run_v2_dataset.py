@@ -86,7 +86,7 @@ def main():
     print("Trainer created")
 
     # train model
-    # trainer.run_epochs(train_loader, test_loader, num_epochs, model_name="UNet_Dipole_H_v2", path_to_root=path_to_root)
+    trainer.run_epochs(train_loader, test_loader, num_epochs, model_name="UNet_Dipole_H_v2", path_to_root=path_to_root)
 
     # evaluate model
     trainer.load_model("UNet_Dipole_H_v2_epoch0150.pt")
