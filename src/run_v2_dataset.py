@@ -8,24 +8,25 @@ import torch
 import matplotlib.pyplot as plt
 import pickle
 import os
-
+import numpy as np
 
 def main():
     # dataset parameters
     dataset_path = "data/bend_h/prepared"
     path_to_root = "models/"
-    dataset_path = "/eos/experiment/shadows/user/flstumme/ai/data/bend_h/prepared"
-    path_to_root = "/eos/experiment/shadows/user/flstumme/ai/models/"
+    # dataset_path = "/eos/experiment/shadows/user/flstumme/ai/data/bend_h/prepared"
+    # path_to_root = "/eos/experiment/shadows/user/flstumme/ai/models/"
     if not os.path.exists(path_to_root):
         os.makedirs(path_to_root)
-    # maximum_elements = 75445
-    maximum_elements = 74240
+    maximum_elements = 75445
+    # maximum_elements = 74240
     # maximum_elements = 5120
     # maximum_elements = 2560
     # maximum_elements = 200
     traintestsplit = 0.1
 
     # hyperparameters
+    # batch_size = 1024
     # batch_size = 512
     batch_size = 256
     # batch_size = 128
@@ -48,7 +49,7 @@ def main():
     # plot_ds(dataset, 3)
 
     # split dataset into train and test
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [len(dataset) - int(len(dataset)*traintestsplit), int(len(dataset)*traintestsplit)])
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [len(dataset) - int(len(dataset)*traintestsplit), int(len(dataset)*traintestsplit)], generator=torch.Generator().manual_seed(42))
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     print(len(train_loader))
@@ -85,7 +86,7 @@ def main():
     print("Trainer created")
 
     # train model
-    trainer.run_epochs(train_loader, test_loader, num_epochs, model_name="UNet_Dipole_H_v2", path_to_root=path_to_root)
+    # trainer.run_epochs(train_loader, test_loader, num_epochs, model_name="UNet_Dipole_H_v2", path_to_root=path_to_root)
 
     # evaluate model
     trainer.load_model("UNet_Dipole_H_v2_epoch0150.pt")

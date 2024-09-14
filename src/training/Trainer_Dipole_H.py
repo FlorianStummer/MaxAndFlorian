@@ -26,7 +26,7 @@ class Trainer_Dipole_H:
             test_hist.append(self.test(test_loader))
             times.append(time.time() - timestamp)
             timestamp = time.time()
-            if epoch % 10 == 0:
+            if epoch % 1 == 0:
                 self.save_model("{}{}_epoch{}.pt".format(path_to_root, model_name, str(epoch).zfill(4)))
                 self.save_hist(train_hist, test_hist, times, path_to_root)
                 # self.evaluate(test_loader)
@@ -148,7 +148,7 @@ class Trainer_Dipole_H:
         print('Model saved at', path)
 
     def load_model(self, path):
-        self.model.load_state_dict(torch.load(path))
+        self.model.load_state_dict(torch.load(path, map_location=self.device))
         print('Model loaded from', path)
         return self.model
     
