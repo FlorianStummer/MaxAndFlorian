@@ -28,8 +28,8 @@ def main():
     # hyperparameters
     # batch_size = 1024
     # batch_size = 512
-    batch_size = 256
-    # batch_size = 128
+    # batch_size = 256
+    batch_size = 128
     # batch_size = 8
     learning_rate = 0.001
     # num_epochs = 51
