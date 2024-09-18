@@ -30,7 +30,11 @@ class Dataset_Bend_H(torch_dataset):
         actual_idx = idx
         # load the npz file
         filename = os.path.join(self.path_to_root, self.npzlist[actual_idx])
-        inp, tar = np.load(filename)['input'], np.load(filename)['target']
+        try:
+            inp, tar = np.load(filename)['input'], np.load(filename)['target']
+        except OSError:
+            print("Error loading file: ", filename)
+            return None, None
 
         # TODO data augmentation
         

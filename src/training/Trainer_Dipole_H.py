@@ -44,6 +44,10 @@ class Trainer_Dipole_H:
         self.model.train()
         train_loss = 0
         for data, target in train_loader:
+            # skip sample if it is None (e.g. due to an error during loading)
+            if data is None:
+                continue
+            # run training step
             weights = self.getweights(data)
             data, target = data.to(self.device, dtype=torch.float32), target.to(self.device, dtype=torch.float32)
             self.optimizer.zero_grad()
@@ -60,6 +64,10 @@ class Trainer_Dipole_H:
         test_loss = 0
         with torch.no_grad():
             for data, target in test_loader:
+                # skip sample if it is None (e.g. due to an error during loading)
+                if data is None:
+                    continue
+                # run test step
                 weights = self.getweights(data)
                 data, target = data.to(self.device, dtype=torch.float32), target.to(self.device, dtype=torch.float32)
                 output = self.model(data)
