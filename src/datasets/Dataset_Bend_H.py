@@ -41,6 +41,10 @@ class Dataset_Bend_H(torch_dataset):
         return inp, tar
         # return {"inp": inp, "metadata": metadata}, tar
 
+    def print_info(self):
+        print("Dataset with {} elements".format(self.length))
+        # print the first 50 filenames as list
+        print(self.npzlist[:50])
 
 def plot_to_axis(axs, img, title):
     axs.imshow(img.T, origin='lower')
