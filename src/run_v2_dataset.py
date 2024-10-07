@@ -26,8 +26,8 @@ def main():
     traintestsplit = 0.1
 
     # hyperparameters
-    # batch_size = 1024
-    batch_size = 512
+    batch_size = 1024
+    # batch_size = 512
     # batch_size = 256
     #batch_size = 128
     # batch_size = 8
@@ -83,7 +83,7 @@ def main():
 
     # create trainer
     trainer = Trainer_Dipole_H(model, optimizer, criterion, device)
-    trainer.load_model("/eos/experiment/shadows/user/flstumme/ai/models/UNet_Dipole_H_v2_epoch0007.pt")
+    trainer.load_model("/eos/experiment/shadows/user/flstumme/ai/models/UNet_Dipole_H_v2_epoch0032.pt")
     print("Trainer created")
 
     # train model
