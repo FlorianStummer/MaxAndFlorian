@@ -180,7 +180,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     print(len(train_loader))
     print(len(test_loader))
-    test_loader.print_info()
+    test_loader.dataset.dataset.print_info()
 
     # set device
     if torch.cuda.is_available():
