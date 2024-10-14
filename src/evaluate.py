@@ -209,7 +209,7 @@ def main():
 
     # create trainer
     trainer = Trainer_Dipole_H(model, optimizer, criterion, device)
-    trainer.load_model("/eos/experiment/shadows/user/flstumme/ai/models/UNet_Dipole_H_v2_epoch0019.pt")
+    trainer.load_model("/eos/experiment/shadows/user/flstumme/ai/models/UNet_Dipole_H_v2_epoch0012.pt")
     print("Trainer created")
 
 
