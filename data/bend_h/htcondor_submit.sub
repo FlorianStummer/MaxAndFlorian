@@ -1,0 +1,19 @@
+universe = vanilla
+executable = /eos/experiment/shadows/user/flstumme/ai/MaxAndFlorian/data/bend_h/job.sh
+logdir = /Users/fstummer/projects/log/ai/bend_h
+
+seed = $(ProcID) + 0
+seedV = $INT(seed)
+
+include command : mkdir -p $(logdir)
+
+arguments = $(seedV)
+
+output = $(logdir)/$(ProcId).out
+error = $(logdir)/$(ProcId).out
+log = $(logdir)/$(ProcId).log
+
+should_transfer_files = NO
+
++MaxRuntime = 3600
+queue 800

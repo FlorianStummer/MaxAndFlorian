@@ -23,9 +23,13 @@ class Dataset_Dipole_H(torch_dataset):
                 n += 1
             if n == maximum_elements:
                 break
+        self.npzlist.sort()
         allmagnets = magnetdesigner.designer.magnetdataset()
         allmagnets = allmagnets.load(os.path.join(self.path_to_root, mdfile))
         self.magnetinfos = magnetdesigner.designer.magnetdataset()
+        # shuffle the list of npz files with a fixed seed
+        np.random.seed(42)
+        np.random.shuffle(self.npzlist)
         for element in self.npzlist:
             self.magnetinfos.append_magnet(allmagnets.get_magnet_by_name(element[:-4]))
         self.maximum_elements = min(maximum_elements, len(self.npzlist))
@@ -301,5 +305,7 @@ def trolo():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
     # trolo()
+    dataset = Dataset_Dipole_H("data/raw/npz_select_1cmSpacing")
+    print(dataset[0])

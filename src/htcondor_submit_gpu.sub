@@ -1,0 +1,17 @@
+universe = vanilla
+executable = /afs/cern.ch/user/f/flstumme/private/ai/job_gpu.sh
+logdir = /afs/cern.ch/user/f/flstumme/private/ai/models/logs
+
+include command : mkdir -p $(logdir)
+
+output = $(logdir)/$(ProcId).out
+error = $(logdir)/$(ProcId).out
+log = $(logdir)/$(ProcId).log
+
+should_transfer_files = NO
+
+request_gpus            = 1
+requirements = regexp("A100", TARGET.GPUs_DeviceName)
+
++MaxRuntime = 3600
+queue 1
