@@ -9,6 +9,8 @@ src/model_instances_ignored/*
 *.png
 *.pt
 *.pkl
+*.FEM
+*.ans
 !data/raw/.gitkeep
 !data/prepared/.gitkeep
 !src/model_instances_ignored/.gitkeep
