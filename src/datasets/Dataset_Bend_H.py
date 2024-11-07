@@ -54,7 +54,7 @@ def plot_to_axis(axs, img, title):
 
 def plot_ds(ds, idx):
     inp, tar = ds[idx]
-    fig, axs = plt.subplots(4, 6, figsize=(20, 15))
+    fig, axs = plt.subplots(4, 6, figsize=(10, 4))
     plot_to_axis(axs[0, 0], inp[0,:,:], "Yoke bool")
     plot_to_axis(axs[0, 1], inp[1,:,:], "Yoke distance")
     plot_to_axis(axs[0, 2], inp[2,:,:], "Yoke distance norm")

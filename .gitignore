@@ -5,7 +5,10 @@ Stage_magnet*
 data/raw/*
 data/prepared/*
 src/model_instances_ignored/*
-
+*.pdf
+*.png
+*.pt
+*.pkl
 !data/raw/.gitkeep
 !data/prepared/.gitkeep
 !src/model_instances_ignored/.gitkeep

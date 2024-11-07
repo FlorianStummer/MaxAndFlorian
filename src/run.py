@@ -24,8 +24,8 @@ def main():
     # hyperparameters
     batch_size = 64
     # batch_size = 8
-    learning_rate = 0.001
-    num_epochs = 151
+    learning_rate = 0.01
+    num_epochs = 501
     # num_epochs = 11
     depth = 5
     wf = 4
@@ -75,13 +75,13 @@ def main():
         train_hist = pickle.load(f)
     with open("test_hist.pkl", "rb") as f:
         test_hist = pickle.load(f)
-    with open("errors.pkl", "rb") as f:
-        errors = pickle.load(f)
+    # with open("errors.pkl", "rb") as f:
+    #     errors = pickle.load(f)
     print("Model loaded")
 
-    trainer.getErrorHistograms(test_loader=test_loader, figureOfMerit="aperture")
-    trainer.getErrorHistograms(test_loader=test_loader, figureOfMerit="magnet")
-    trainer.getErrorHistograms(test_loader=test_loader, figureOfMerit="outer")
+    # trainer.getErrorHistograms(test_loader=test_loader, figureOfMerit="aperture")
+    # trainer.getErrorHistograms(test_loader=test_loader, figureOfMerit="magnet")
+    # trainer.getErrorHistograms(test_loader=test_loader, figureOfMerit="outer")
 
     # plot training history
     fig, ax = plt.subplots(1, 2)
